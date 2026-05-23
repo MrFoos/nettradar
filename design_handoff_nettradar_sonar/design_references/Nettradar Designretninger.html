@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nettradar — designretninger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" />
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #f0eee9; font-family: 'Inter', -apple-system, sans-serif; }
+    * { box-sizing: border-box; }
+  </style>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="data.jsx"></script>
+  <script type="text/babel" src="a-mission-control.jsx"></script>
+  <script type="text/babel" src="b-editorial.jsx"></script>
+  <script type="text/babel" src="c-sonar.jsx"></script>
+  <script type="text/babel" src="c-sonar-om.jsx"></script>
+  <script type="text/babel" src="c-sonar-bgp.jsx"></script>
+  <script type="text/babel" src="c-sonar-topo.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const ARTBOARD_W = 1440;
+    const ARTBOARD_H = 900;
+
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "showBothThemes": true,
+      "showNotes": true,
+      "showSonarStates": true,
+      "showSonarPages": true
+    }/*EDITMODE-END*/;
+
+    function NoteCard({ title, dark, lines }) {
+      const bg = dark ? '#0b0f17' : '#fdfbf6';
+      const fg = dark ? '#e6eaf2' : '#15110c';
+      const dim = dark ? '#8a929e' : '#7c7468';
+      const accent = dark ? '#7cb6ff' : '#c4451f';
+      return (
+        <div style={{
+          width: '100%', height: '100%', background: bg, color: fg,
+          padding: 32, display: 'flex', flexDirection: 'column',
+          fontFamily: '"Inter", sans-serif',
+        }}>
+          <div style={{ fontSize: 11, letterSpacing: 1.6, color: dim, textTransform: 'uppercase' }}>
+            Designnotat
+          </div>
+          <h2 style={{
+            fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 32, fontWeight: 600,
+            lineHeight: 1.05, letterSpacing: -0.8, margin: '8px 0 18px',
+          }}>
+            {title}
+          </h2>
+          <div style={{ flex: 1, fontSize: 13.5, lineHeight: 1.55, color: fg }}>
+            {lines.map((l, i) => (
+              <div key={i} style={{ padding: '8px 0', borderTop: i === 0 ? 'none' : `1px solid ${dim}33` }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 1, color: accent,
+                  textTransform: 'uppercase', marginBottom: 3 }}>{l.k}</div>
+                <div>{l.v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+      return (
+        <>
+          <DesignCanvas>
+            <DCSection id="intro" title="Nettradar — tre designretninger"
+              subtitle="Klikk et artboard for fullskjerm. Live BGP-feed simuleres på alle tre. Hver retning finnes i både lys og mørk modus (seksjon 2). Bruk Tweaks oppe til høyre for å skjule seksjoner.">
+
+              <DCArtboard id="a-dark" label="A · Mission Control" width={ARTBOARD_W} height={ARTBOARD_H}>
+                <ADashboard width={ARTBOARD_W} height={ARTBOARD_H} theme="dark" />
+              </DCArtboard>
+
+              <DCArtboard id="b-light" label="B · Editorial" width={ARTBOARD_W} height={ARTBOARD_H}>
+                <BDashboard width={ARTBOARD_W} height={ARTBOARD_H} theme="light" />
+              </DCArtboard>
+
+              <DCArtboard id="c-dark" label="C · Sonar" width={ARTBOARD_W} height={ARTBOARD_H}>
+                <CDashboard width={ARTBOARD_W} height={ARTBOARD_H} theme="dark" />
+              </DCArtboard>
+            </DCSection>
+
+            {t.showBothThemes && (
+              <DCSection id="themes" title="Lys / mørk for hver retning"
+                subtitle="Samme dashboard i motsatt tema — alle tre retningene er togglebare lys/mørk.">
+
+                <DCArtboard id="a-light" label="A · Mission Control · lys" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <ADashboard width={ARTBOARD_W} height={ARTBOARD_H} theme="light" />
+                </DCArtboard>
+
+                <DCArtboard id="b-dark" label="B · Editorial · mørk" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <BDashboard width={ARTBOARD_W} height={ARTBOARD_H} theme="dark" />
+                </DCArtboard>
+
+                <DCArtboard id="c-light" label="C · Sonar · lys" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <CDashboard width={ARTBOARD_W} height={ARTBOARD_H} theme="light" />
+                </DCArtboard>
+              </DCSection>
+            )}
+
+            {t.showSonarPages && (
+              <DCSection id="sonar-pages" title="Sonar — alle fanene"
+                subtitle="Slik ser de tre andre fanene ut i samme språk. BGP-aktivitet med både Sammendrag og Logg, og full Topologi-graf.">
+
+                <DCArtboard id="c-bgp-summary" label="BGP-aktivitet · Sammendrag · mørk" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <CBgpPage width={ARTBOARD_W} height={ARTBOARD_H} theme="dark" view="summary" />
+                </DCArtboard>
+
+                <DCArtboard id="c-bgp-log" label="BGP-aktivitet · Logg · mørk" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <CBgpPage width={ARTBOARD_W} height={ARTBOARD_H} theme="dark" view="log" />
+                </DCArtboard>
+
+                <DCArtboard id="c-bgp-light" label="BGP-aktivitet · Sammendrag · lys" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <CBgpPage width={ARTBOARD_W} height={ARTBOARD_H} theme="light" view="summary" />
+                </DCArtboard>
+
+                <DCArtboard id="c-topo-dark" label="Topologi · mørk" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <CTopoPage width={ARTBOARD_W} height={ARTBOARD_H} theme="dark" />
+                </DCArtboard>
+
+                <DCArtboard id="c-topo-light" label="Topologi · lys" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <CTopoPage width={ARTBOARD_W} height={ARTBOARD_H} theme="light" />
+                </DCArtboard>
+              </DCSection>
+            )}
+
+            {t.showSonarStates && (
+              <DCSection id="sonar-states" title="Sonar — flere tilstander og sider"
+                subtitle="«Alt rolig»-tilstand for sikkerhetsvarsler + Om-siden i samme språk.">
+
+                <DCArtboard id="c-allclear-dark" label="Sonar · alt rolig · mørk" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <CDashboard width={ARTBOARD_W} height={ARTBOARD_H} theme="dark" allClear />
+                </DCArtboard>
+
+                <DCArtboard id="c-allclear-light" label="Sonar · alt rolig · lys" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <CDashboard width={ARTBOARD_W} height={ARTBOARD_H} theme="light" allClear />
+                </DCArtboard>
+
+                <DCArtboard id="c-om-dark" label="Sonar · Om-siden · mørk" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <COmPage width={ARTBOARD_W} height={ARTBOARD_H} theme="dark" />
+                </DCArtboard>
+
+                <DCArtboard id="c-om-light" label="Sonar · Om-siden · lys" width={ARTBOARD_W} height={ARTBOARD_H}>
+                  <COmPage width={ARTBOARD_W} height={ARTBOARD_H} theme="light" />
+                </DCArtboard>
+              </DCSection>
+            )}
+
+            {t.showNotes && (
+              <DCSection id="notes" title="Designnotater"
+                subtitle="Hva som skiller retningene, og hva som blir likt.">
+
+                <DCArtboard id="note-a" label="A · Mission Control" width={520} height={620}>
+                  <NoteCard dark title="A · Mission Control" lines={[
+                    { k: 'Estetikk', v: 'Bloomberg-terminal møter moderne SaaS. Mørk slate-bakgrunn, tett informasjon, men luftigere enn klassisk NOC takket være typografisk hierarki.' },
+                    { k: 'Type', v: 'Inter for UI/labels, JetBrains Mono for tall og data. Tabular-nums overalt så kolonner stemmer.' },
+                    { k: 'Hierarki', v: 'Hero-status øverst gir umiddelbar lesbarhet for journalister. 2×2-grid under for analytikere som vil grave dypere.' },
+                    { k: 'Når dette passer', v: 'Hvis du vil ligne på Cloudflare Radar / Grafana, og publikumet ditt er teknisk. Føles "trygt" og profesjonelt.' },
+                    { k: 'Bevegelse', v: 'Diskret pulserende statusprikk, sparklines som ruller, fade-in på nye hendelser. Ingenting som distraherer.' },
+                  ]} />
+                </DCArtboard>
+
+                <DCArtboard id="note-b" label="B · Editorial" width={520} height={620}>
+                  <NoteCard title="B · Editorial" lines={[
+                    { k: 'Estetikk', v: 'FT / The Pudding / The Markup. Lest som en sak, ikke et kontrollpanel. Avis-mastemerke, serif-overskrifter, italics for nyanser.' },
+                    { k: 'Type', v: 'Source Serif 4 til overskrifter og dataverdier som ber om vekt; Inter til chrome; JetBrains Mono kun for timestamps og prefikser.' },
+                    { k: 'Hierarki', v: 'Hovedsaken får 38px serif og en lead-paragraf. Lar deg "fortelle hva som skjer akkurat nå" — perfekt for journalister.' },
+                    { k: 'Når dette passer', v: 'Hvis du vil at folk skal dele lenken når noe skjer. Nettradar blir et nettsted folk besøker, ikke bare et dashboard.' },
+                    { k: 'Risiko', v: 'Lavere informasjonstetthet enn A. Teknisk publikum kan savne tall-på-tall-feeling.' },
+                  ]} />
+                </DCArtboard>
+
+                <DCArtboard id="note-c" label="C · Sonar" width={520} height={620}>
+                  <NoteCard dark title="C · Sonar" lines={[
+                    { k: 'Estetikk', v: 'Linear / Vercel / Stripe. Mye luft, store tall, runde kort. Skandinavisk minimalisme. Subtilt og ledende; design kommer ikke i veien.' },
+                    { k: 'Type', v: 'Inter alene som hovedfont, med JetBrains Mono kun for tids- og IP-felter. Variabel vekt for hierarki, ikke størrelse alene.' },
+                    { k: 'Hierarki', v: 'Stor heading "Tre aktive sikkerhetsvarsler" leser som en setning. Hero-card til venstre = mest kritisk hendelse. Detaljer i kort under.' },
+                    { k: 'Når dette passer', v: 'Hvis du vil at Nettradar skal føles som et produkt, ikke et verktøy. Best for delbarhet, mobil-bro, og bredere publikum.' },
+                    { k: 'Risiko', v: 'Lavest tetthet — kan virke "for lett" for SOC-folk som vil se alt samtidig.' },
+                  ]} />
+                </DCArtboard>
+
+                <DCArtboard id="note-shared" label="På tvers — felles" width={520} height={620}>
+                  <NoteCard title="Felles for alle tre" lines={[
+                    { k: 'Datamodell', v: 'Alle bygger på faktisk backend-shape: event_type (announcement/withdrawal/hijack), matched_no_asns, hijacker/victim, attack_timeseries (L7+L3), attack_origins med country_code.' },
+                    { k: 'Innhold', v: 'Hjemmesiden viser nasjonal status (en linje), DDoS-graf 24t, sikkerhetsvarsler, opphavs-AS, opphavs-land. Egne sider for BGP-aktivitet og Topologi.' },
+                    { k: 'Toggle lys/mørk', v: 'Implementert som en theme-prop på toppnivå. Persisterbart i localStorage. Begge moduser produksjonsklar i alle tre retninger.' },
+                    { k: 'Norsk identitet', v: 'Subtil — språk, ASN-navn, byer. Ingen flagg-vifting; teknisk uttrykk holder seg internasjonalt.' },
+                    { k: 'Neste steg', v: 'Velg retning, jeg setter opp alle tre faner (Dashboard / BGP-aktivitet / Topologi) og kobler dem til ekte API-endepunkter.' },
+                  ]} />
+                </DCArtboard>
+              </DCSection>
+            )}
+          </DesignCanvas>
+
+          <TweaksPanel>
+            <TweakSection label="Seksjoner">
+              <TweakToggle label="Lys/mørk-vurdering" value={t.showBothThemes}
+                onChange={v => setTweak('showBothThemes', v)} />
+              <TweakToggle label="Sonar — alle faner" value={t.showSonarPages}
+                onChange={v => setTweak('showSonarPages', v)} />
+              <TweakToggle label="Sonar — tilstander & Om-side" value={t.showSonarStates}
+                onChange={v => setTweak('showSonarStates', v)} />
+              <TweakToggle label="Designnotater" value={t.showNotes}
+                onChange={v => setTweak('showNotes', v)} />
+            </TweakSection>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

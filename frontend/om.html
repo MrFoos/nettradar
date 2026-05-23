@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nettradar — Om</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="apple-touch-icon" href="/static/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0c; --text: #f5f5f7; --dim: #a8a8b3; --dimmer: #7a7a8a;
+      --card: #0f0f12; --card-elevated: #13131a; --border: rgba(255,255,255,0.07);
+      --accent: #d4d4dc; --red: #ff6b5b; --amber: #f5b942; --green: #4fd58a; --blue: #7cb6ff;
+    }
+    [data-theme="light"] {
+      --bg: #f7f6f3; --text: #15151a; --dim: #5a5a63; --dimmer: #8a8a93;
+      --card: #ffffff; --card-elevated: #ffffff; --border: rgba(15,15,26,0.10);
+      --accent: #15151a; --red: #d83a2e; --amber: #b87a0c; --green: #1f7a3e; --blue: #1e5fc9;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 14px; font-feature-settings: "cv11","ss01";
+      display: flex; flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+    @keyframes c-pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    .nav {
+      display: flex; align-items: center; padding: 24px 40px 18px; gap: 28px;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; }
+    .nav-links { display: flex; gap: 18px; margin-left: 20px; }
+    .nav-link { font-size: 13px; color: var(--dim); font-weight: 500; transition: color .15s; }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.active { color: var(--text); font-weight: 600; }
+    .nav-right {
+      display: flex; align-items: center; gap: 14px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--dim);
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 3px; background: var(--dimmer); display: inline-block; }
+    .status-dot.live { background: var(--green); animation: c-pulse 2.5s ease-in-out infinite; }
+    .status-indicator { display: inline-flex; align-items: center; gap: 5px; }
+    .theme-btn {
+      width: 34px; height: 34px; border-radius: 50%; cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center; border: 1.5px solid;
+      transition: transform .15s, background .15s, border-color .15s;
+    }
+    .theme-btn:hover { transform: scale(1.05); }
+    [data-theme="dark"]  .theme-btn { color:#f5b942; border-color:rgba(245,185,66,.3);  background:rgba(245,185,66,.07); }
+    [data-theme="dark"]  .theme-btn:hover { border-color:rgba(245,185,66,.5);  background:rgba(245,185,66,.13); }
+    [data-theme="light"] .theme-btn { color:#2d5082; border-color:rgba(45,80,130,.25); background:rgba(45,80,130,.06); }
+    [data-theme="light"] .theme-btn:hover { border-color:rgba(45,80,130,.45); background:rgba(45,80,130,.11); }
+    .theme-icon-sun, .theme-icon-moon { display: none; pointer-events: none; }
+    [data-theme="dark"]  .theme-icon-sun  { display: block; }
+    [data-theme="light"] .theme-icon-moon { display: block; }
+    /* HAMBURGER + DRAWER */
+    .nav { position: relative; }
+    .hamburger-btn {
+      display: none; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border);
+      background: transparent; color: var(--text); cursor: pointer;
+      transition: background .15s, border-color .15s; padding: 0; position: relative; flex-shrink: 0;
+    }
+    .hamburger-btn:hover { background: var(--card-elevated); }
+    .ham-icon, .ham-close {
+      position: absolute; display: flex; align-items: center; justify-content: center;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .ham-icon { opacity: 1; transform: scale(1) rotate(0deg); }
+    .ham-close { opacity: 0; transform: scale(.7) rotate(-45deg); }
+    .hamburger-btn[aria-expanded="true"] .ham-icon { opacity: 0; transform: scale(.7) rotate(45deg); }
+    .hamburger-btn[aria-expanded="true"] .ham-close { opacity: 1; transform: scale(1) rotate(0deg); }
+    .nav-drawer {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+      display: flex; flex-direction: column;
+      background: var(--card-elevated); border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0,0,0,.28); padding: 12px 0;
+      visibility: hidden; opacity: 0; transform: translateY(-8px); pointer-events: none;
+      transition: opacity 180ms ease-out, transform 180ms ease-out, visibility 0ms 180ms;
+    }
+    [data-theme="light"] .nav-drawer { box-shadow: 0 8px 24px rgba(0,0,0,.09); }
+    .nav-drawer.open {
+      visibility: visible; opacity: 1; transform: translateY(0); pointer-events: auto;
+      transition: opacity 180ms ease-out, transform 180ms ease-out;
+    }
+    .drawer-link {
+      display: block; font-size: 16px; font-weight: 500; color: var(--dim);
+      padding: 14px 24px; text-decoration: none;
+      border-left: 3px solid transparent; border-bottom: 1px solid var(--border);
+      transition: color .15s, background .15s, border-left-color .15s;
+    }
+    .drawer-link:last-child { border-bottom: none; }
+    .drawer-link:hover, .drawer-link:focus-visible {
+      color: var(--text); background: rgba(255,255,255,.04); outline: none;
+    }
+    [data-theme="light"] .drawer-link:hover, [data-theme="light"] .drawer-link:focus-visible {
+      background: rgba(0,0,0,.04);
+    }
+    .drawer-link.active {
+      color: var(--text); border-left-color: var(--accent); background: rgba(255,255,255,.03);
+    }
+    [data-theme="light"] .drawer-link.active { background: rgba(0,0,0,.03); }
+
+    .layout { display: grid; grid-template-columns: 220px 1fr; flex: 1; overflow: hidden; min-height: 0; }
+
+    .left-nav { padding: 40px 24px 40px 40px; border-right: 1px solid var(--border); overflow-y: auto; }
+    .left-nav-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.6px; color: var(--dim);
+      text-transform: uppercase; margin-bottom: 14px;
+    }
+    .anchor-links { display: flex; flex-direction: column; gap: 2px; }
+    .anchor-link {
+      font-size: 13px; color: var(--dim); padding: 7px 0 7px 12px; margin-left: -14px;
+      border-left: 2px solid transparent; font-weight: 400; transition: color .15s, border-color .15s;
+    }
+    .anchor-link:hover { color: var(--text); }
+    .anchor-link.active { color: var(--text); border-left-color: var(--text); font-weight: 500; }
+
+    .content { overflow-y: auto; padding: 40px 56px 60px; }
+    .content-inner { max-width: 720px; }
+
+    .om-hero { margin-bottom: 56px; }
+    .kicker { font-size: 11px; font-weight: 600; letter-spacing: 1.4px; color: var(--dim); text-transform: uppercase; margin-bottom: 16px; }
+    .om-h1 { font-size: 48px; font-weight: 500; letter-spacing: -1.6px; line-height: 1.05; margin: 0; }
+    .om-lead { font-size: 17px; line-height: 1.55; color: var(--dim); margin-top: 18px; max-width: 620px; }
+    .fact-pills { display: flex; gap: 20px; margin-top: 28px; flex-wrap: wrap; }
+    .fact-pill { display: inline-flex; flex-direction: column; gap: 2px; }
+    .fact-label { font-size: 10px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+    .fact-value { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-variant-numeric: tabular-nums; font-weight: 500; }
+
+    .section { margin-top: 40px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .section-kicker { font-size: 10px; font-weight: 600; letter-spacing: 1.4px; color: var(--dim); text-transform: uppercase; margin-bottom: 8px; }
+    .section h2 { font-size: 28px; font-weight: 500; letter-spacing: -.8px; line-height: 1.1; margin: 0; }
+
+    .prose { max-width: 700px; font-size: 14.5px; line-height: 1.65; color: var(--dim); }
+    .prose p { margin: 0 0 14px; }
+    .prose p:last-child { margin-bottom: 0; }
+    .prose strong { color: var(--text); font-weight: 600; }
+
+    .event-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0 32px; }
+    .event-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px; position: relative; overflow: hidden;
+    }
+    .event-stripe { position: absolute; top: 0; left: 0; bottom: 0; width: 3px; }
+    .event-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .event-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; padding: 3px 7px; border-radius: 3px; }
+    .event-title { font-size: 14.5px; font-weight: 500; letter-spacing: -.2px; }
+    .event-body { font-size: 13px; line-height: 1.55; color: var(--dim); }
+
+    .callout {
+      background: var(--card); border: 1px solid var(--border); border-left: 2px solid var(--dim);
+      border-radius: 8px; padding: 14px 18px; margin: 16px 0 28px;
+      font-size: 13px; line-height: 1.55; color: var(--dim); max-width: 700px;
+    }
+    .callout strong { color: var(--text); font-weight: 600; }
+    code { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+
+    .panel-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 20px 0 32px; }
+    .panel-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .panel-q { font-size: 11.5px; color: var(--dim); font-style: italic; margin-bottom: 10px; font-family: 'Source Serif 4', Georgia, serif; }
+    .panel-h { font-size: 15px; font-weight: 500; letter-spacing: -.2px; margin-bottom: 6px; }
+    .panel-body { font-size: 12.5px; line-height: 1.55; color: var(--dim); }
+
+    .legend-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; margin: 20px 0 16px; }
+    .legend-card-label { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); margin-bottom: 14px; }
+    .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 32px; }
+    .legend-row { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 7px; flex-shrink: 0; }
+
+    .source-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 20px 0 24px; }
+    .source-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px; display: flex; flex-direction: column; gap: 10px;
+      text-decoration: none; color: inherit;
+      transition: border-color .15s, transform .15s;
+    }
+    .source-card:hover {
+      border-color: var(--card-color, var(--border));
+      transform: translateY(-1px);
+    }
+    .source-header { display: flex; align-items: center; gap: 10px; }
+    .source-dot { width: 8px; height: 8px; border-radius: 4px; flex-shrink: 0; }
+    .source-name { font-size: 14.5px; font-weight: 600; letter-spacing: -.2px; }
+    .source-body { font-size: 12.5px; line-height: 1.55; color: var(--dim); flex: 1; }
+    .source-link { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; padding-top: 6px; border-top: 1px solid var(--border); }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--card); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .left-nav { display: none; }
+      .content { padding: 32px 24px 48px; }
+      .event-grid, .panel-grid, .source-grid { grid-template-columns: 1fr; }
+      .legend-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 1099px) {
+      .nav-links { gap: 14px; }
+      .nav-link { font-size: 12.5px; }
+    }
+    @media (max-width: 959px) {
+      .nav-links { display: none; }
+      .hamburger-btn { display: flex; }
+    }
+    @media (max-width: 480px) {
+      .status-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="10" stroke="var(--accent)" stroke-width="1.2" opacity=".25"/>
+      <circle cx="11" cy="11" r="6.5" stroke="var(--accent)" stroke-width="1.2" opacity=".5"/>
+      <circle cx="11" cy="11" r="2.5" fill="var(--accent)"/>
+    </svg>
+    <span><span style="font-size:19px;font-weight:700;letter-spacing:-.4px">nettradar</span><span style="font-size:19px;font-weight:400;color:var(--dim);letter-spacing:-.4px">.no</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/bgp" class="nav-link">BGP-aktivitet</a>
+    <a href="/topologi" class="nav-link">Topologi</a>
+    <a href="/om" class="nav-link active">Om Nettradar</a>
+  </div>
+  <span style="flex:1"></span>
+  <div class="nav-right">
+    <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE</span></span>
+    <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Bytt til lys modus">
+      <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="3.2"/><line x1="8" y1="1" x2="8" y2="2.5"/><line x1="8" y1="13.5" x2="8" y2="15"/><line x1="1" y1="8" x2="2.5" y2="8"/><line x1="13.5" y1="8" x2="15" y2="8"/><line x1="3.34" y1="3.34" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="12.66" y2="12.66"/><line x1="3.34" y1="12.66" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="12.66" y2="3.34"/></svg>
+      <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="#2d5082" stroke="#2d5082" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleNav()" aria-expanded="false" aria-label="Åpne meny">
+      <svg class="ham-icon" width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="0" y1="1" x2="18" y2="1"/><line x1="0" y1="6" x2="18" y2="6"/><line x1="0" y1="11" x2="18" y2="11"/></svg>
+      <svg class="ham-close" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+    </button>
+  </div>
+  <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true">
+    <a href="/" class="drawer-link">Dashboard</a>
+    <a href="/bgp" class="drawer-link">BGP-aktivitet</a>
+    <a href="/topologi" class="drawer-link">Topologi</a>
+    <a href="/om" class="drawer-link active">Om Nettradar</a>
+  </div>
+</nav>
+
+<div class="layout">
+  <div class="left-nav">
+    <div class="left-nav-label">På denne siden</div>
+    <div class="anchor-links">
+      <a class="anchor-link active" href="#s1">Hva er Nettradar</a>
+      <a class="anchor-link" href="#s2">BGP-hendelser</a>
+      <a class="anchor-link" href="#s3">DDoS-angrep</a>
+      <a class="anchor-link" href="#s4">Dashboard-paneler</a>
+      <a class="anchor-link" href="#s5">BGP-aktivitet</a>
+      <a class="anchor-link" href="#s6">AS-Topologi</a>
+      <a class="anchor-link" href="#s7">Datakilder</a>
+    </div>
+  </div>
+
+  <div class="content" id="content" onscroll="updateActiveLink()">
+    <div class="content-inner">
+
+      <div class="om-hero" id="s1">
+        <div class="kicker">Om denne siden</div>
+        <h1 class="om-h1">Sanntids-radar for norsk internett.</h1>
+        <p class="om-lead">
+          Nettradar viser tilstanden til norsk internettinfrastruktur etter hvert som den endrer seg —
+          BGP-ruteendringer, DDoS-angrep og sikkerhetsvarsler.
+          Alt som vises er ekte, live data fra åpne kilder.
+        </p>
+        <div class="fact-pills">
+          <div class="fact-pill">
+            <span class="fact-label">BGP-hendelser</span>
+            <span class="fact-value">umiddelbart</span>
+          </div>
+          <div class="fact-pill">
+            <span class="fact-label">Angrep &amp; varsler</span>
+            <span class="fact-value">hvert 60. s</span>
+          </div>
+          <div class="fact-pill">
+            <span class="fact-label">Overvåkede ASN-er</span>
+            <span class="fact-value">13 norske</span>
+          </div>
+          <div class="fact-pill">
+            <span class="fact-label">Lagring</span>
+            <span class="fact-value">ingen</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="s2">
+        <div class="section-kicker">Protokoll</div>
+        <h2>BGP-hendelser</h2>
+      </div>
+      <div class="prose">
+        <p>
+          BGP (Border Gateway Protocol) er protokollen alle nettverksoperatører bruker for å
+          annonsere hvilke IP-adresser de er ansvarlige for. Tenk på det som et digitalt veikart
+          som oppdateres kontinuerlig.
+        </p>
+        <p>
+          Nettradar lytter på den globale BGP-datastrømmen fra RIPE RIS Live og filtrerer ut alle
+          meldinger som involverer norske nettverk. Fire typer hendelser overvåkes:
+        </p>
+      </div>
+
+      <div class="event-grid">
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--blue)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--blue);background:rgba(124,182,255,.14)">UPDATE</span>
+            <span class="event-title">Annonsering</span>
+          </div>
+          <div class="event-body">En operatør melder: «IP-blokken 185.93.54.0/24 er tilgjengelig via meg.» Skjer ved oppstart av rutere, failover til backup eller når nye IP-blokker tas i bruk. Hundrevis i minuttet er normalt.</div>
+        </div>
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--amber)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--amber);background:rgba(245,185,66,.14)">WITHDRAW</span>
+            <span class="event-title">Tilbaketrekk</span>
+          </div>
+          <div class="event-body">«Den IP-blokken er ikke lenger tilgjengelig via meg.» Kan bety planlagt vedlikehold eller failover. Isolerte tilfeller er ufarlige; mange på kort tid kan signalere driftsavbrudd.</div>
+        </div>
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--red)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--red);background:rgba(255,107,91,.14)">HIJACK</span>
+            <span class="event-title">Hijack</span>
+          </div>
+          <div class="event-body">En aktør annonserer en IP-blokk som tilhører en annen operatør — uten rett til det. Vanligvis feilkonfigurasjon, sjelden bevisst angrep. BGP har ingen innebygd verifisering. Berørte noder vises i 30 sekunder i topologien.</div>
+        </div>
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--amber)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--amber);background:rgba(245,185,66,.14)">ROUTE LEAK</span>
+            <span class="event-title">Rutelekkasje</span>
+          </div>
+          <div class="event-body">En operatør videresender ruter til naboer den ikke skulle ha propagert. Trafikk kan bli feilrutet uten at noen vet. Vanligere enn hijacks, oftest feil i ruterkonfigurasjon.</div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>Prefiks-notasjon:</strong> IP-blokker skrives som <code>185.93.54.0/24</code>.
+        Tallet etter skråstreken angir størrelsen — /24 er 256 adresser, /16 er 65&nbsp;536. IPv6 fungerer
+        likt (f.eks. <code>2a02:ac81::/32</code>).
+      </div>
+
+      <div class="section" id="s3">
+        <div class="section-kicker">Angrep mot norske nettverk</div>
+        <h2>DDoS-angrep</h2>
+      </div>
+      <div class="prose">
+        <p>
+          Cloudflare Radar rapporterer DDoS-angrep mot norsk infrastruktur hvert 60. sekund.
+          Nettradar viser siste 24 timers aktivitet som en tidsserie, delt i to angrepskategorier:
+        </p>
+      </div>
+
+      <div class="event-grid" style="margin-bottom:20px">
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--amber)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--amber);background:rgba(245,185,66,.14)">L7</span>
+            <span class="event-title">Applikasjonslag (HTTP)</span>
+          </div>
+          <div class="event-body">Angrep som oversvømmer webservere med HTTP-forespørsler — flooder API-er, login-sider og CDN-er. Lett å sende, vanskelig å skille fra ekte brukere. Eksempler: HTTP flood, Slowloris, cache-bust.</div>
+        </div>
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--red)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--red);background:rgba(255,107,91,.14)">L3/4</span>
+            <span class="event-title">Nettverks- og transportlag</span>
+          </div>
+          <div class="event-body">Volum-angrep som metter båndbredde eller overvelder rutere — UDP flood, SYN flood, ICMP flood, amplifikasjon via DNS/NTP. Måles i Gbps eller Mpps, ikke i antall forespørsler.</div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>
+          <strong>Normalisert intensitet:</strong> Y-aksen i DDoS-grafen går fra 0 til 1,0.
+          Verdien 1,0 tilsvarer den høyeste observerte intensiteten i de siste 24 timene for den
+          angrepskategorien — ikke et absolutt trafikktall i Gbps. Dette gjør det enkelt å se
+          relative topper og trender uten å forholde seg til store rå-tall.
+        </p>
+        <p>
+          <strong>Kilde-AS vs. opprinnelsesland:</strong> Kilde-AS er nettverket
+          (f.eks. en skyplattform eller et botnet-vert-ISP) som angrepspakkene faktisk sendes fra.
+          Opprinnelsesland er landet kilde-IP-en er registrert i. Disse kan avvike — angripere
+          leier gjerne servere i nøytrale land eller bruker kompromitterte maskiner spredt globalt.
+        </p>
+      </div>
+
+      <div class="callout" style="margin-bottom:32px">
+        <strong>Kun Cloudflare-trafikk:</strong> Dataene dekker utelukkende angrep mot tjenester
+        som er bak Cloudflare. Angrep mot infrastruktur som ikke benytter Cloudflare — f.eks. rene
+        ISP-nett og on-premise-servere — er ikke synlig her.
+      </div>
+
+      <div class="section" id="s4">
+        <div class="section-kicker">Hva du ser på forsiden</div>
+        <h2>Dashboard-paneler</h2>
+      </div>
+      <div class="prose"><p>Forsiden viser tre seksjoner som hver svarer på et spørsmål:</p></div>
+
+      <div class="panel-grid">
+        <div class="panel-card">
+          <div class="panel-q">«Er det noe galt akkurat nå?»</div>
+          <div class="panel-h">Sikkerhetsvarsler</div>
+          <div class="panel-body">Aktive BGP-hijacks og route leaks oppdaget av Cloudflare Radar, samt hijacks fanget i sanntid fra RIPE RIS Live. Grønt = ingen. Rødt = noe krever oppmerksomhet.</div>
+        </div>
+        <div class="panel-card">
+          <div class="panel-q">«Hvor mye DDoS-trafikk?»</div>
+          <div class="panel-h">DDoS-aktivitet</div>
+          <div class="panel-body">Time-for-time L7 (HTTP) og L3/4 (volum) angrep mot norsk infra. Y-aksen er normalisert: 1,0 = dagens topp for den typen, ikke et absolutt trafikktall.</div>
+        </div>
+        <div class="panel-card">
+          <div class="panel-q">«Hvem og hvor stammer det fra?»</div>
+          <div class="panel-h">Opprinnelse</div>
+          <div class="panel-body">Kilde-AS (hvilket nettverk angrepstrafikken kommer fra) og kilde-land (hvilken stat kilde-IP-en er registrert i). De fleste angrep bruker kompromitterte servere på tvers av land.</div>
+        </div>
+      </div>
+
+      <div class="section" id="s5">
+        <div class="section-kicker">Egen fane</div>
+        <h2>BGP-aktivitet</h2>
+      </div>
+      <div class="prose">
+        <p>BGP-aktivitet-siden gir to visninger av sanntidsdata fra norske nettverk:</p>
+        <p>
+          <strong>Sammendrag</strong> — en tabell som summerer annonseringer, tilbaketrekk og hijacks per operatør
+          siden siden ble lastet. Oppdateres automatisk hvert 30. sekund. Sorterbar.
+        </p>
+        <p>
+          <strong>Logg</strong> — en løpende strøm, nyeste øverst, de 150 siste hendelsene. Hijack-rader markeres rødt.
+          Teller for hend/min i panelet reflekterer faktisk BGP-aktivitet i norsk infrastruktur nå.
+        </p>
+      </div>
+
+      <div class="section" id="s6">
+        <div class="section-kicker">Egen fane</div>
+        <h2>AS-Topologi</h2>
+      </div>
+      <div class="prose">
+        <p>
+          Et AS (Autonomous System) er et nett av IP-adresser under felles administrasjon — typisk
+          en ISP, et mobilnett eller en stor bedrift. Hvert AS har et unikt nummer (ASN). Telenor
+          er AS2119, UNINETT er AS2116, og så videre.
+        </p>
+        <p>
+          Topologigrafen viser norske AS-er som noder. En linje mellom to noder betyr at begge
+          dukket opp i samme BGP-rutingsti i live-dataen — altså at de faktisk ruter trafikk
+          gjennom hverandre.
+        </p>
+      </div>
+
+      <div class="legend-card">
+        <div class="legend-card-label">Farger og størrelser</div>
+        <div class="legend-grid">
+          <div class="legend-row">
+            <span class="legend-dot" style="background:#7ab8ff;box-shadow:0 0 8px rgba(122,184,255,.4)"></span>
+            <span style="font-weight:500;color:var(--text)">aktiv</span>
+            <span style="color:var(--dim)">— siste 5 sek.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-dot" style="background:#4d94ff;box-shadow:0 0 8px rgba(77,148,255,.4)"></span>
+            <span style="font-weight:500;color:var(--text)">overvåket</span>
+            <span style="color:var(--dim)">— ingen fersk</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-dot" style="background:var(--amber);box-shadow:0 0 8px rgba(245,185,66,.4)"></span>
+            <span style="font-weight:500;color:var(--text)">gul ring</span>
+            <span style="color:var(--dim)">— tilbaketrekk siste 15 sek.</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-dot" style="background:var(--red);box-shadow:0 0 8px rgba(255,107,91,.4)"></span>
+            <span style="font-weight:500;color:var(--text)">rød node</span>
+            <span style="color:var(--dim)">— hijack siste 30 sek.</span>
+          </div>
+        </div>
+        <div style="font-size:12.5px;color:var(--dim);margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+          <strong style="color:var(--text);font-weight:500">Nodestørrelse</strong> skalerer med antall BGP-hendelser i økten.
+          Grafen bygger seg opp etter hvert som data strømmer inn — 30–60 minutter for komplett bilde.
+          <strong style="color:var(--text);font-weight:500">Interaksjon:</strong> dra noder, scroll for zoom, hover for detaljer.
+        </div>
+      </div>
+
+      <div class="section" id="s7">
+        <div class="section-kicker">Hvor dataene kommer fra</div>
+        <h2>Datakilder</h2>
+      </div>
+
+      <div class="source-grid">
+        <a class="source-card" href="https://ris-live.ripe.net" target="_blank" rel="noopener noreferrer" style="--card-color:var(--blue)">
+          <div class="source-header">
+            <span class="source-dot" style="background:var(--blue);box-shadow:0 0 8px var(--blue)"></span>
+            <span class="source-name">RIPE RIS Live</span>
+          </div>
+          <div class="source-body">Persistent WebSocket-strøm av globale BGP-oppdateringer. Filtrert på norske AS-nummer og prefikser. Gratis, ingen nøkkel.</div>
+          <div class="source-link" style="color:var(--blue)">↗ ris-live.ripe.net</div>
+        </a>
+        <a class="source-card" href="https://radar.cloudflare.com" target="_blank" rel="noopener noreferrer" style="--card-color:var(--amber)">
+          <div class="source-header">
+            <span class="source-dot" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>
+            <span class="source-name">Cloudflare Radar</span>
+          </div>
+          <div class="source-body">L7- og L3/4 DDoS-tidsserier, BGP-hijacks, route leaks og angrepenes opprinnelse for Norge. Oppdateres hvert 60. sekund.</div>
+          <div class="source-link" style="color:var(--amber)">↗ radar.cloudflare.com</div>
+        </a>
+        <a class="source-card" href="https://peeringdb.com" target="_blank" rel="noopener noreferrer" style="--card-color:var(--green)">
+          <div class="source-header">
+            <span class="source-dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span>
+            <span class="source-name">PeeringDB</span>
+          </div>
+          <div class="source-body">Register over norske nettverksoperatører og AS-nummer. Lastes ved oppstart og oppdateres daglig.</div>
+          <div class="source-link" style="color:var(--green)">↗ peeringdb.com</div>
+        </a>
+      </div>
+
+      <div class="prose" style="margin-top:0">
+        <p style="font-size:13px">
+          All data er offentlig tilgjengelig. Nettradar lagrer ingenting — hendelser holdes kun i
+          minnet og nullstilles ved serveroppstart.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleTheme() {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('nt-theme', t);
+  document.getElementById('theme-btn').setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus');
+}
+function _navTrap(e) {
+  const focusable = Array.from(document.getElementById('nav-drawer').querySelectorAll('a[href], button:not([disabled])'));
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (e.key !== 'Tab') return;
+  if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+  else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+}
+function openNav() {
+  const btn = document.getElementById('hamburger-btn');
+  const drawer = document.getElementById('nav-drawer');
+  drawer.classList.add('open');
+  btn.setAttribute('aria-expanded', 'true');
+  btn.setAttribute('aria-label', 'Lukk meny');
+  drawer.addEventListener('keydown', _navTrap);
+  requestAnimationFrame(() => { const f = drawer.querySelector('a[href]'); if (f) f.focus(); });
+}
+function closeNav() {
+  const btn = document.getElementById('hamburger-btn');
+  const drawer = document.getElementById('nav-drawer');
+  if (!drawer.classList.contains('open')) return;
+  drawer.classList.remove('open');
+  drawer.removeEventListener('keydown', _navTrap);
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-label', 'Åpne meny');
+  btn.focus();
+}
+function toggleNav() {
+  if (document.getElementById('nav-drawer').classList.contains('open')) closeNav(); else openNav();
+}
+document.querySelectorAll('.drawer-link').forEach(a => a.addEventListener('click', closeNav));
+document.addEventListener('click', function(e) { if (!document.querySelector('nav.nav').contains(e.target)) closeNav(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeNav(); });
+(function(){
+  const t = localStorage.getItem('nt-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus');
+})();
+
+function updateActiveLink() {
+  const content = document.getElementById('content');
+  const ids = ['s1','s2','s3','s4','s5','s6','s7'];
+  let active = 's1';
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (el && el.offsetTop - content.getBoundingClientRect().top <= 100) active = id;
+  }
+  document.querySelectorAll('.anchor-link').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + active);
+  });
+}
+
+document.querySelectorAll('.anchor-link').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.getElementById(a.getAttribute('href').slice(1));
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+  ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'state_snapshot' && msg.data.radar && msg.data.radar.last_updated) {
+      document.getElementById('cf-dot').classList.add('live');
+    }
+  };
+  ws.onclose = () => { document.getElementById('ripe-dot').classList.remove('live'); setTimeout(connect, 3000); };
+  ws.onerror = () => ws.close();
+}
+connect();
+</script>
+</body>
+</html>
