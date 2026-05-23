@@ -68,6 +68,24 @@ async def bgp():
 async def om():
     return FileResponse(FRONTEND / "om.html")
 
+@app.get("/robots.txt")
+async def robots():
+    return Response(
+        content="User-agent: *\nAllow: /\nSitemap: https://nettradar.no/sitemap.xml\n",
+        media_type="text/plain",
+    )
+
+@app.get("/sitemap.xml")
+async def sitemap():
+    content = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://nettradar.no/</loc><changefreq>hourly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://nettradar.no/bgp</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://nettradar.no/topologi</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nettradar.no/om</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+</urlset>"""
+    return Response(content=content, media_type="application/xml")
+
 @app.get("/favicon.ico")
 async def favicon():
     return Response(status_code=204)
