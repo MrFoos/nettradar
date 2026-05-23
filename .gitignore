@@ -1,6 +1,9 @@
 # Secrets
 .env
 
+# Design references (not part of public repo)
+design_handoff_nettradar_sonar/
+
 # Python
 .venv/
 __pycache__/
