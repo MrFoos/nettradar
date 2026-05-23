@@ -208,8 +208,18 @@
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     @media (max-width: 900px) {
-      .hero { grid-template-columns: 1fr; }
+      .hero { grid-template-columns: 1fr; padding: 28px 20px 22px; gap: 24px; }
+      .hero-h1 { font-size: 32px; letter-spacing: -.8px; }
       .hero-stats { flex-wrap: wrap; gap: 20px; }
+      .content-area { padding: 0 20px 28px; }
+      .nav { padding: 18px 20px 14px; gap: 14px; }
+      /* Drop the locked viewport-height layout — let the page scroll naturally on phones */
+      html, body { height: auto; }
+      body { display: block; }
+      .nav { position: sticky; top: 0; background: var(--bg); z-index: 10; }
+      .content-area { display: block; flex: none; }
+      .table-card { flex: none; min-height: 0; }
+      .table-body { overflow: visible; min-height: 0; }
     }
     @media (max-width: 1099px) {
       .nav-links { gap: 14px; }
@@ -220,15 +230,63 @@
       .nav-links { display: none; }
       .hamburger-btn { display: flex; }
     }
-    @media (max-width: 480px) {
-      .status-label { display: none; }
-    }
     @media (max-width: 700px) {
+      .nav-right .status-indicator { display: none; }
       .hero-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; }
+      .table-card-header { flex-wrap: wrap; row-gap: 4px; padding: 14px 18px; }
+      .table-card-header > span[style*="flex:1"] { display: none; }
+      .table-card-header > span:last-child { margin-left: auto; font-size: 11px; }
+      /* Summary table → stacked cards on phones */
+      .table-header { display: none; }
+      .table-grid.table-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        grid-template-areas: "asn name spark" "stats stats stats";
+        gap: 6px 12px; padding: 14px 18px; align-items: center;
+      }
+      .table-grid.table-row > *:nth-child(1) { grid-area: asn; font-size: 11.5px !important; }
+      .table-grid.table-row > *:nth-child(2) { grid-area: name; font-size: 14px !important; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .table-grid.table-row > *:nth-child(6) { grid-area: spark; opacity: .8; }
+      .table-grid.table-row > *:nth-child(3),
+      .table-grid.table-row > *:nth-child(4),
+      .table-grid.table-row > *:nth-child(5),
+      .table-grid.table-row > *:nth-child(7) {
+        display: inline-flex; align-items: baseline; gap: 5px;
+        font-size: 12px !important; text-align: left !important; width: auto !important;
+      }
+      .table-grid.table-row > *:nth-child(3)::before { content: "upd"; color: var(--dim); font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: .5px; }
+      .table-grid.table-row > *:nth-child(4)::before { content: "wd"; color: var(--dim); font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: .5px; }
+      .table-grid.table-row > *:nth-child(5)::before { content: "hi"; color: var(--dim); font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: .5px; }
+      .table-grid.table-row > *:nth-child(7)::before { content: "sist"; color: var(--dim); font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: .5px; }
+      .table-grid.table-row > *:nth-child(3),
+      .table-grid.table-row > *:nth-child(4),
+      .table-grid.table-row > *:nth-child(5),
+      .table-grid.table-row > *:nth-child(7) {
+        grid-area: auto; /* let them flow */
+      }
+      .table-grid.table-row { grid-template-areas: "asn name spark" "upd wd hi" "sist sist sist"; }
+      .table-grid.table-row > *:nth-child(3) { grid-area: upd; }
+      .table-grid.table-row > *:nth-child(4) { grid-area: wd; }
+      .table-grid.table-row > *:nth-child(5) { grid-area: hi; }
+      .table-grid.table-row > *:nth-child(7) { grid-area: sist; justify-content: flex-start; }
+      /* Log view → stacked card per row */
+      .log-header { display: none; }
+      .log-grid.log-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        grid-template-areas: "type prefix time" "path path path" "peer peer peer";
+        gap: 4px 10px; padding: 12px 18px;
+      }
+      .log-row > *:nth-child(1) { grid-area: time; text-align: right !important; font-size: 11px !important; }
+      .log-row > *:nth-child(2) { grid-area: type; }
+      .log-row > *:nth-child(3) { grid-area: prefix; min-width: 0 !important; flex-wrap: wrap; }
+      .log-row > *:nth-child(4) { grid-area: path; font-size: 10.5px !important; white-space: normal !important; }
+      .log-row > *:nth-child(5) { grid-area: peer; text-align: left !important; }
+      .log-row > *:nth-child(5)::before { content: "peer "; color: var(--dim); }
     }
     @media (max-width: 640px) {
       .table-grid { grid-template-columns: 80px 1.6fr 1fr 1fr 1fr; }
-      .table-grid > *:nth-child(6), .table-grid > *:nth-child(7) { display: none; }
+      .table-grid.table-header > *:nth-child(6), .table-grid.table-header > *:nth-child(7) { display: none; }
     }
   </style>
   <script defer src="https://umami.nettradar.no/script.js" data-website-id="REPLACE_WITH_WEBSITE_ID"></script>

@@ -205,7 +205,14 @@
     }
     [data-theme="light"] .details-sheet { box-shadow: 0 -8px 32px rgba(0,0,0,.08); }
     .details-sheet.open { display: block; }
-    .details-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+    .details-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; cursor: pointer; }
+    .details-close {
+      position: absolute; top: 12px; right: 14px; width: 36px; height: 36px;
+      border-radius: 18px; border: 1px solid var(--border); background: var(--card);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      color: var(--text); transition: background .15s, border-color .15s;
+    }
+    .details-close:hover { background: var(--card-elevated); border-color: var(--dim); }
     @media (max-width: 1099px) {
       .nav-links { gap: 14px; }
       .nav-link { font-size: 12.5px; }
@@ -215,16 +222,28 @@
       .nav-links { display: none; }
       .hamburger-btn { display: flex; }
     }
-    @media (max-width: 480px) {
-      .status-label { display: none; }
+    @media (max-width: 700px) {
+      .nav-right .status-indicator { display: none; }
+      .nav { padding: 18px 20px 14px; gap: 14px; }
+      /* Compact hero so the graph gets actual real estate */
+      .hero { padding: 16px 20px 12px; gap: 18px; align-items: stretch; flex-direction: column; }
+      .hero-h1 { font-size: 18px; letter-spacing: -.3px; line-height: 1.3; }
+      .hero-kicker { margin-bottom: 6px; font-size: 10px; }
+      .hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+      .topo-stat-label { font-size: 9.5px; margin-bottom: 2px; letter-spacing: .8px; }
+      .topo-stat-num { font-size: 20px; }
+      .topo-stat-sub { display: none; }
+      .main-area { padding: 0 12px 14px; }
+      .graph-label { font-size: 11px; top: 10px; left: 12px; }
+      .graph-label span { display: block; margin-left: 0; margin-top: 2px; font-size: 10.5px; }
+      .zoom-btns { bottom: 10px; right: 10px; }
+      /* Bigger close affordance on details sheet */
+      .details-sheet { padding: 14px 20px 28px; }
     }
     @media (max-width: 1024px) {
       .main-area { grid-template-columns: 1fr; }
       .sidebar { display: none; }
       .details-btn { display: block; }
-    }
-    @media (max-width: 700px) {
-      .hero-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 28px; }
     }
   </style>
   <script defer src="https://umami.nettradar.no/script.js" data-website-id="REPLACE_WITH_WEBSITE_ID"></script>
@@ -380,6 +399,11 @@
 <!-- MOBILE DETAILS SHEET -->
 <div class="details-sheet" id="details-sheet">
   <div class="details-handle" onclick="closeDetails()"></div>
+  <button class="details-close" onclick="closeDetails()" aria-label="Lukk og gå tilbake til topologikartet">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+    </svg>
+  </button>
   <div style="font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim);margin-bottom:14px">Tegnforklaring</div>
   <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
     <div style="display:flex;align-items:center;gap:10px"><svg width="18" height="18"><circle cx="9" cy="9" r="7" fill="rgba(122,184,255,.15)" stroke="#7ab8ff" stroke-width="1.8"/></svg><span style="font-size:12.5px;font-weight:500">Aktiv</span><span style="font-size:11px;color:var(--dim)">hendelse siste 5 s</span></div>
