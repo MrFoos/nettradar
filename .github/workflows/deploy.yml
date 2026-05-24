@@ -17,6 +17,12 @@ jobs:
           script: |
             cd /var/www/nettradar
             git fetch origin
+            CHANGED=$(git diff --name-only HEAD origin/main)
             git reset --hard origin/main
             .venv/bin/pip install -q -r requirements.txt
-            systemctl restart nettradar
+            if echo "$CHANGED" | grep -qE '^backend/|^requirements\.txt'; then
+              systemctl restart nettradar
+              echo "Backend endret — tjeneste restartet"
+            else
+              echo "Kun frontend/config endret — ingen restart nødvendig"
+            fi
