@@ -121,8 +121,7 @@
 
     /* HERO */
     .hero {
-      padding: 32px 40px 26px; display: grid;
-      grid-template-columns: 1fr auto; gap: 40px; align-items: end; flex-shrink: 0;
+      padding: 32px 40px 26px; flex-shrink: 0;
     }
     .hero-kicker { font-size: 11px; font-weight: 600; letter-spacing: 1.4px; color: var(--dim); text-transform: uppercase; margin-bottom: 12px; }
     .hero-h1 { font-size: 40px; font-weight: 500; letter-spacing: -1.2px; line-height: 1.05; margin: 0; }
@@ -131,35 +130,54 @@
     .bgp-stat-num { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 500; letter-spacing: -.4px; line-height: 1; font-variant-numeric: tabular-nums; }
     .bgp-stat-sub { font-size: 11px; color: var(--dim); margin-top: 4px; }
 
-    /* VIEW TOGGLE */
+    /* TAB BAR */
+    .tab-bar {
+      display: flex; align-items: stretch; flex-shrink: 0;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px 14px 0 0; padding-right: 22px;
+    }
+    .tab-bar-right {
+      align-self: center; display: flex; align-items: center; gap: 6px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--dim);
+    }
+
+    /* VIEW TOGGLE — underline tabs */
     .view-toggle {
-      display: inline-flex; background: var(--card); border: 1px solid var(--border);
-      border-radius: 10px; padding: 3px; gap: 2px;
+      display: flex; gap: 28px;
+      padding: 0 22px; margin: 0; align-self: stretch; align-items: center;
     }
     .toggle-btn {
-      padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500;
-      color: var(--dim); cursor: pointer; border: 1px solid transparent; background: transparent;
-      transition: all .15s;
+      appearance: none; background: transparent; border: 0;
+      padding: 12px 2px; margin-bottom: -1px;
+      font: inherit; font-size: 14px; font-weight: 500;
+      color: var(--dim); cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+      display: inline-flex; align-items: center; gap: 8px;
+      white-space: nowrap;
     }
-    .toggle-btn.active {
-      background: var(--card-elevated); color: var(--text);
-      border-color: var(--border);
+    .toggle-btn:hover { color: var(--text); border-bottom-color: var(--border); }
+    .toggle-btn.active { color: var(--text); border-bottom-color: var(--blue); }
+    .toggle-btn:focus-visible {
+      outline: 2px solid var(--blue); outline-offset: 4px; border-radius: 2px;
     }
+    .toggle-count {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px; font-weight: 500; color: var(--dim);
+      background: var(--card-elevated); border: 1px solid var(--border);
+      padding: 1px 6px; border-radius: 999px; min-width: 22px; text-align: center;
+    }
+    .toggle-btn.active .toggle-count { color: var(--text); }
 
     /* CONTENT AREA */
     .content-area { flex: 1; padding: 0 40px 32px; min-height: 0; display: flex; flex-direction: column; }
 
     /* TABLE CARD */
     .table-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      background: var(--card); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 14px 14px;
       display: flex; flex-direction: column; overflow: hidden; flex: 1;
     }
-    .table-card-header {
-      padding: 14px 22px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: baseline; gap: 12px; flex-shrink: 0;
-    }
-    .table-card-title { font-size: 13.5px; font-weight: 600; }
-    .table-card-sub { font-size: 11.5px; color: var(--dim); }
 
     /* SUMMARY TABLE */
     .table-grid { display: grid; grid-template-columns: 80px 1.6fr 1fr 1fr 1fr 1fr 100px; }
@@ -208,7 +226,7 @@
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     @media (max-width: 900px) {
-      .hero { grid-template-columns: 1fr; padding: 28px 20px 22px; gap: 24px; }
+      .hero { padding: 28px 20px 22px; }
       .hero-h1 { font-size: 32px; letter-spacing: -.8px; }
       .hero-stats { flex-wrap: wrap; gap: 20px; }
       .content-area { padding: 0 20px 28px; }
@@ -230,12 +248,19 @@
       .nav-links { display: none; }
       .hamburger-btn { display: flex; }
     }
+    @media (max-width: 720px) {
+      .tab-bar {
+        background: transparent; border: none;
+        border-bottom: 1px solid var(--border);
+        border-radius: 0; padding: 0; margin-bottom: 12px;
+      }
+      .tab-bar-right { display: none !important; }
+      .view-toggle { padding: 0; }
+      .table-card { border-top: 1px solid var(--border); border-radius: 14px; }
+    }
     @media (max-width: 700px) {
       .nav-right .status-indicator { display: none; }
       .hero-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; }
-      .table-card-header { flex-wrap: wrap; row-gap: 4px; padding: 14px 18px; }
-      .table-card-header > span[style*="flex:1"] { display: none; }
-      .table-card-header > span:last-child { margin-left: auto; font-size: 11px; }
       /* Summary table → stacked cards on phones */
       .table-header { display: none; }
       .table-grid.table-row {
@@ -332,54 +357,58 @@
 
 <!-- HERO -->
 <div class="hero">
-  <div>
-    <div class="hero-kicker">BGP-aktivitet</div>
-    <h1 class="hero-h1">
-      <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums" id="stat-epm">—</span>
-       hendelser per minutt fra norske nettverk.
-    </h1>
-    <div class="hero-stats">
-      <div>
-        <div class="bgp-stat-label">ASN-er observert</div>
-        <div class="bgp-stat-num" id="stat-asns-obs">—</div>
-        <div class="bgp-stat-sub">av 13 overvåket</div>
-      </div>
-      <div>
-        <div class="bgp-stat-label">Annonseringer</div>
-        <div class="bgp-stat-num" id="stat-updates">0</div>
-        <div class="bgp-stat-sub">siden oppstart</div>
-      </div>
-      <div>
-        <div class="bgp-stat-label">Tilbaketrekk</div>
-        <div class="bgp-stat-num" id="stat-withdraws">0</div>
-        <div class="bgp-stat-sub">siden oppstart</div>
-      </div>
-      <div>
-        <div class="bgp-stat-label">Hijacks</div>
-        <div class="bgp-stat-num" id="stat-hijacks" style="color:var(--dimmer)">0</div>
-        <div class="bgp-stat-sub">siden oppstart</div>
-      </div>
+  <div class="hero-kicker">BGP-aktivitet</div>
+  <h1 class="hero-h1">
+    <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums" id="stat-epm">—</span>
+     hendelser per minutt fra norske nettverk.
+  </h1>
+  <div class="hero-stats">
+    <div>
+      <div class="bgp-stat-label">ASN-er observert</div>
+      <div class="bgp-stat-num" id="stat-asns-obs">—</div>
+      <div class="bgp-stat-sub">av 13 overvåket</div>
     </div>
-  </div>
-
-  <div class="view-toggle">
-    <button class="toggle-btn active" id="btn-summary" onclick="setView('summary')">Sammendrag</button>
-    <button class="toggle-btn" id="btn-log" onclick="setView('log')">Logg</button>
+    <div>
+      <div class="bgp-stat-label">Annonseringer</div>
+      <div class="bgp-stat-num" id="stat-updates">0</div>
+      <div class="bgp-stat-sub">siden oppstart</div>
+    </div>
+    <div>
+      <div class="bgp-stat-label">Tilbaketrekk</div>
+      <div class="bgp-stat-num" id="stat-withdraws">0</div>
+      <div class="bgp-stat-sub">siden oppstart</div>
+    </div>
+    <div>
+      <div class="bgp-stat-label">Hijacks</div>
+      <div class="bgp-stat-num" id="stat-hijacks" style="color:var(--dimmer)">0</div>
+      <div class="bgp-stat-sub">siden oppstart</div>
+    </div>
   </div>
 </div>
 
 <!-- CONTENT -->
 <div class="content-area">
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <div class="view-toggle" role="tablist" aria-label="BGP-visning">
+      <button class="toggle-btn active" id="btn-summary"
+              role="tab" aria-selected="true" aria-controls="view-summary"
+              onclick="setView('summary')">Sammendrag</button>
+      <button class="toggle-btn" id="btn-log"
+              role="tab" aria-selected="false" aria-controls="view-log"
+              onclick="setView('log')">
+        Logg <span class="toggle-count" id="log-count">0</span>
+      </button>
+    </div>
+    <span style="flex:1"></span>
+    <span id="tab-info-summary" class="tab-bar-right">oppdateres hvert 30. s</span>
+    <span id="tab-info-log" class="tab-bar-right" style="display:none;color:var(--green)">
+      <span class="stream-dot"></span>strømmer fra RIPE RIS
+    </span>
+  </div>
+
   <!-- SUMMARY VIEW -->
   <div id="view-summary" class="table-card">
-    <div class="table-card-header">
-      <span class="table-card-title">Per ASN — siden oppstart</span>
-      <span class="table-card-sub">klikk en kolonne for å sortere</span>
-      <span style="flex:1"></span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--dim)">
-        oppdateres hvert 30. s
-      </span>
-    </div>
     <div class="table-grid table-header">
       <span>ASN</span>
       <span>Operatør</span>
@@ -398,14 +427,6 @@
 
   <!-- LOG VIEW -->
   <div id="view-log" class="table-card" style="display:none">
-    <div class="table-card-header">
-      <span class="table-card-title">Live BGP-strøm</span>
-      <span class="table-card-sub">nyeste øverst · 150 siste hendelser</span>
-      <span style="flex:1"></span>
-      <span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--green)">
-        <span class="stream-dot"></span>strømmer fra RIPE RIS
-      </span>
-    </div>
     <div class="log-grid log-header">
       <span>Tid</span>
       <span>Type</span>
@@ -483,14 +504,31 @@ let currentSort = 'updates';
 let asnStats = {}; // asn -> {name, updates, withdraws, hijacks, lastSeen, sparkData}
 let logEvents = [];
 let totalUpdates = 0, totalWithdraws = 0, totalHijacks = 0;
+let unseenLog = 0;
 
 // ── View toggle ────────────────────────────────────────────────────────────
+function bumpLogCount() {
+  unseenLog++;
+  const el = document.getElementById('log-count');
+  el.textContent = unseenLog > 99 ? '99+' : String(unseenLog);
+}
+
 function setView(v) {
   currentView = v;
   document.getElementById('view-summary').style.display = v === 'summary' ? 'flex' : 'none';
   document.getElementById('view-log').style.display = v === 'log' ? 'flex' : 'none';
-  document.getElementById('btn-summary').className = 'toggle-btn' + (v === 'summary' ? ' active' : '');
-  document.getElementById('btn-log').className = 'toggle-btn' + (v === 'log' ? ' active' : '');
+  const sum = document.getElementById('btn-summary');
+  const log = document.getElementById('btn-log');
+  sum.classList.toggle('active', v === 'summary');
+  log.classList.toggle('active', v === 'log');
+  sum.setAttribute('aria-selected', String(v === 'summary'));
+  log.setAttribute('aria-selected', String(v === 'log'));
+  document.getElementById('tab-info-summary').style.display = v === 'summary' ? '' : 'none';
+  document.getElementById('tab-info-log').style.display = v === 'log' ? 'inline-flex' : 'none';
+  if (v === 'log') {
+    unseenLog = 0;
+    document.getElementById('log-count').textContent = '0';
+  }
 }
 
 // ── Sort ───────────────────────────────────────────────────────────────────
@@ -598,7 +636,7 @@ function processEvent(e, addToLog = true) {
   const asns = e.matched_no_asns || [];
   if (!asns.length && e.as_path) {
     // no matched asns - skip for stats
-    if (addToLog) { logEvents.unshift(e); if (logEvents.length > 150) logEvents.pop(); renderLog(); }
+    if (addToLog) { logEvents.unshift(e); if (logEvents.length > 150) logEvents.pop(); if (currentView === 'log') renderLog(); else bumpLogCount(); }
     return;
   }
   asns.forEach(asn => {
@@ -623,6 +661,7 @@ function processEvent(e, addToLog = true) {
     logEvents.unshift(e);
     if (logEvents.length > 150) logEvents.pop();
     if (currentView === 'log') renderLog();
+    else bumpLogCount();
   }
 
   totalUpdates = Object.values(asnStats).reduce((s,r) => s + r.updates, 0);

@@ -590,7 +590,7 @@ function renderAlerts(alerts, noAsns) {
 
   if (alerts.length === 0) {
     count.style.color = 'var(--green)';
-    count.textContent = '● 0 åpne · siste 24 t.';
+    count.textContent = '● Ingen detektert · siste 24 t.';
     area.innerHTML = `
       <div class="all-clear">
         <div style="position:absolute;top:-50px;left:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(79,213,138,.08),transparent 70%);pointer-events:none;border-radius:50%"></div>
@@ -600,7 +600,7 @@ function renderAlerts(alerts, noAsns) {
           </svg>
         </div>
         <div style="flex:1">
-          <div style="font-size:16px;font-weight:500;letter-spacing:-.2px;margin-bottom:3px">Ingen aktive varsler</div>
+          <div style="font-size:16px;font-weight:500;letter-spacing:-.2px;margin-bottom:3px">Ingen hendelser detektert siste 24 t.</div>
           <div style="font-size:13px;color:var(--dim);line-height:1.5">
             Cloudflare har ikke flagget hijacks eller route leaks mot norsk infrastruktur siste 24 timer, og RIPE RIS-strømmen viser ingen uregelmessige annonseringer.
           </div>
@@ -620,11 +620,11 @@ function renderAlerts(alerts, noAsns) {
   }
 
   count.style.color = 'var(--red)';
-  count.textContent = `${alerts.length} åpne · siste 24 t.`;
+  count.textContent = `${alerts.length} detektert · siste 24 t.`;
   const shown = alerts.slice(0, 3);
   const extra = alerts.length - shown.length;
   area.innerHTML = `<div class="alerts-grid">${shown.map(a => alertCard(a, noAsns)).join('')}</div>` +
-    (extra > 0 ? `<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">+ ${extra} flere åpne varsler</p>` : '');
+    (extra > 0 ? `<p style="margin:10px 0 0;font-size:12px;color:var(--dim)">+ ${extra} flere hendelser</p>` : '');
 }
 
 function alertCard(a, noAsns) {
@@ -707,8 +707,8 @@ function applySnapshot(data) {
     if (delta > 0) {
       const ddosColor = delta <= 20 ? 'var(--amber)' : 'var(--red)';
       const countStr = alerts.length > 0
-        ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> aktive sikkerhetsvarsler.`
-        : 'Ingen aktive sikkerhetsvarsler.';
+        ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> sikkerhetshendelser detektert siste 24 t.`
+        : 'Ingen sikkerhetshendelser detektert siste 24 t.';
       heroEl.innerHTML = `DDoS-aktivitet ligger <span class="acc" style="color:${ddosColor}">${absDelta}%</span> over snitt. ${countStr}`;
     } else {
       heroEl.innerHTML = `DDoS-aktivitet er <span class="acc" style="color:var(--green)">${absDelta}%</span> under snitt. Ingen aktive sikkerhetsvarsler.`;
