@@ -72,8 +72,8 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
         session, "/attacks/layer3/timeseries",
         {"location": "NO", "dateRange": "1d", "aggInterval": "1h"}
     )
-    hijack_result = await _get(session, "/bgp/hijacks/events", {"per_page": "50"})
-    leak_result = await _get(session, "/bgp/leaks/events", {"per_page": "30"})
+    hijack_result = await _get(session, "/bgp/hijacks/events", {"per_page": "50", "dateRange": "1d"})
+    leak_result = await _get(session, "/bgp/leaks/events", {"per_page": "30", "dateRange": "1d"})
     origins_result = await _get(
         session, "/attacks/layer7/top/locations/origin",
         {"location": "NO", "limit": "10", "dateRange": "1d"}
