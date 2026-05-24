@@ -313,10 +313,25 @@
       .table-grid { grid-template-columns: 80px 1.6fr 1fr 1fr 1fr; }
       .table-grid.table-header > *:nth-child(6), .table-grid.table-header > *:nth-child(7) { display: none; }
     }
+    .skip-link {
+      position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
+    }
+    .skip-link:focus {
+      position: fixed; top: 8px; left: 8px; width: auto; height: auto;
+      padding: 8px 16px; background: var(--bg); color: var(--text);
+      border: 2px solid var(--accent); border-radius: 6px;
+      font-size: 13px; font-weight: 600; z-index: 9999;
+    }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0;
+      margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
+      white-space: nowrap; border: 0;
+    }
   </style>
   <script defer src="https://umami.nettradar.no/script.js" data-website-id="1c7c3c7e-4456-4d21-8837-d4dab429f5ab"></script>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Hopp til innhold</a>
 
 <!-- NAV -->
 <nav class="nav">
@@ -347,7 +362,7 @@
       <svg class="ham-close" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
     </button>
   </div>
-  <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true">
+  <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigasjonsmeny">
     <a href="/" class="drawer-link">Dashboard</a>
     <a href="/bgp" class="drawer-link active">BGP-aktivitet</a>
     <a href="/topologi" class="drawer-link">Topologi</a>
@@ -355,6 +370,8 @@
   </div>
 </nav>
 
+<!-- MAIN -->
+<main id="main-content">
 <!-- HERO -->
 <div class="hero">
   <div class="hero-kicker">BGP-aktivitet</div>
@@ -397,7 +414,7 @@
       <button class="toggle-btn" id="btn-log"
               role="tab" aria-selected="false" aria-controls="view-log"
               onclick="setView('log')">
-        Logg <span class="toggle-count" id="log-count">0</span>
+        Logg <span class="toggle-count" id="log-count" style="display:none">0</span>
       </button>
     </div>
     <span style="flex:1"></span>
@@ -412,15 +429,19 @@
     <div class="table-grid table-header">
       <span>ASN</span>
       <span>Operatør</span>
-      <span class="sort-col active" id="sort-updates" onclick="sortBy('updates')" style="color:var(--blue)">
+      <span class="sort-col active" id="sort-updates" role="button" tabindex="0"
+            onclick="sortBy('updates')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sortBy('updates')}"
+            style="color:var(--blue)">
         <span class="sort-dot" style="background:var(--blue)"></span>Update <span style="font-size:9px">↓</span>
       </span>
-      <span class="sort-col" id="sort-withdraws" onclick="sortBy('withdraws')">Withdraw</span>
-      <span class="sort-col" id="sort-hijacks" onclick="sortBy('hijacks')">Hijack</span>
+      <span class="sort-col" id="sort-withdraws" role="button" tabindex="0"
+            onclick="sortBy('withdraws')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sortBy('withdraws')}">Withdraw</span>
+      <span class="sort-col" id="sort-hijacks" role="button" tabindex="0"
+            onclick="sortBy('hijacks')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sortBy('hijacks')}">Hijack</span>
       <span>Aktivitet</span>
       <span style="text-align:right">Sist sett</span>
     </div>
-    <div class="table-body" id="summary-body">
+    <div class="table-body" id="summary-body" tabindex="0" role="region" aria-label="BGP-sammendrag">
       <div style="padding:14px 22px;color:var(--dim);font-size:13px">Kobler til…</div>
     </div>
   </div>
@@ -434,11 +455,12 @@
       <span>AS-sti</span>
       <span style="text-align:right">Peer</span>
     </div>
-    <div class="table-body" id="log-body">
+    <div class="table-body" id="log-body" tabindex="0" role="region" aria-label="BGP-hendelseslogg">
       <div style="padding:14px 22px;color:var(--dim);font-size:13px">Kobler til strøm…</div>
     </div>
   </div>
 </div>
+</main>
 
 <script>
 // ── Theme ──────────────────────────────────────────────────────────────────
@@ -511,6 +533,7 @@ function bumpLogCount() {
   unseenLog++;
   const el = document.getElementById('log-count');
   el.textContent = unseenLog > 99 ? '99+' : String(unseenLog);
+  el.style.display = '';
 }
 
 function setView(v) {
@@ -525,9 +548,12 @@ function setView(v) {
   log.setAttribute('aria-selected', String(v === 'log'));
   document.getElementById('tab-info-summary').style.display = v === 'summary' ? '' : 'none';
   document.getElementById('tab-info-log').style.display = v === 'log' ? 'inline-flex' : 'none';
+  const countEl = document.getElementById('log-count');
   if (v === 'log') {
     unseenLog = 0;
-    document.getElementById('log-count').textContent = '0';
+    countEl.style.display = 'none';
+  } else {
+    if (unseenLog > 0) countEl.style.display = '';
   }
 }
 
