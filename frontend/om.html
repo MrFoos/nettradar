@@ -337,8 +337,8 @@
           som oppdateres kontinuerlig.
         </p>
         <p>
-          Nettradar lytter på den globale BGP-datastrømmen fra RIPE RIS Live og filtrerer ut alle
-          meldinger som involverer norske nettverk. Fire typer hendelser overvåkes:
+          Nettradar lytter på den globale BGP-datastrømmen fra RIPE RIS Live og filtrerer ut
+          meldinger som involverer norske AS-nummer eller prefikser. Fire typer hendelser overvåkes:
         </p>
       </div>
 
@@ -365,7 +365,7 @@
             <span class="event-tag" style="color:var(--red);background:rgba(255,107,91,.14)">HIJACK</span>
             <span class="event-title">Hijack</span>
           </div>
-          <div class="event-body">En aktør annonserer en IP-blokk som tilhører en annen operatør — uten rett til det. Vanligvis feilkonfigurasjon, sjelden bevisst angrep. BGP har ingen innebygd verifisering. Berørte noder vises i 30 sekunder i topologien.</div>
+          <div class="event-body">En aktør annonserer en IP-blokk som tilhører en annen operatør — uten rett til det. Vanligvis feilkonfigurasjon, sjelden bevisst angrep. BGP har ingen innebygd verifisering. Berørte noder markeres i inntil 30 sekunder i topologien.</div>
         </div>
         <div class="event-card">
           <div class="event-stripe" style="background:var(--amber)"></div>
@@ -444,12 +444,12 @@
         <div class="panel-card">
           <div class="panel-q">«Er det noe galt akkurat nå?»</div>
           <div class="panel-h">Sikkerhetsvarsler</div>
-          <div class="panel-body">Aktive BGP-hijacks og route leaks oppdaget av Cloudflare Radar, samt hijacks fanget i sanntid fra RIPE RIS Live. Grønt = ingen. Rødt = noe krever oppmerksomhet.</div>
+          <div class="panel-body">Aktive BGP-hijacks og route leaks oppdaget av Cloudflare Radar, samt hijacks detektert fra RIPE RIS Live-strømmen. Grønt = ingen. Rødt = noe krever oppmerksomhet.</div>
         </div>
         <div class="panel-card">
           <div class="panel-q">«Hvor mye DDoS-trafikk?»</div>
           <div class="panel-h">DDoS-aktivitet</div>
-          <div class="panel-body">Time-for-time L7 (HTTP) og L3/4 (volum) angrep mot norsk infra. Y-aksen er normalisert: 1,0 = dagens topp for den typen, ikke et absolutt trafikktall.</div>
+          <div class="panel-body">Time-for-time L7 (HTTP) og L3/4 (volum) DDoS-aktivitet rapportert av Cloudflare mot norsk infra. Y-aksen er normalisert: 1,0 = dagens topp for den typen, ikke et absolutt trafikktall.</div>
         </div>
         <div class="panel-card">
           <div class="panel-q">«Hvem og hvor stammer det fra?»</div>
