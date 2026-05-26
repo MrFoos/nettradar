@@ -588,7 +588,7 @@ function renderHendelser(alerts, outages, anomalies, noAsns) {
   const secBody = document.getElementById('quad-sec-body');
   if (secBody) {
     if (!alerts.length) {
-      secBody.innerHTML = emptyQuad('Ingen hijacks eller route leaks flagget siste 24 t.');
+      secBody.innerHTML = emptyQuad('Ingen hijacks eller route leaks flagget siste 24 t.');
     } else {
       const items = alerts.slice(0, 3).map(a => {
         const isH = a.kind === 'hijack';
@@ -618,7 +618,7 @@ function renderHendelser(alerts, outages, anomalies, noAsns) {
   const outBody = document.getElementById('quad-out-body');
   if (outBody) {
     if (!outages.length) {
-      outBody.innerHTML = emptyQuad('Ingen pågående nettavbrudd siste 24 t.');
+      outBody.innerHTML = emptyQuad('Ingen pågående nettavbrudd siste 24 t.');
     } else {
       const items = outages.slice(0, 3).map(o => {
         const name = o.asn_name || (o.asn ? `AS${o.asn}` : '—');
@@ -647,7 +647,7 @@ function renderHendelser(alerts, outages, anomalies, noAsns) {
   const anomBody = document.getElementById('quad-anom-body');
   if (anomBody) {
     if (!anomalies.length) {
-      anomBody.innerHTML = emptyQuad('Ingen statistiske trafikkavvik siste 24 t.');
+      anomBody.innerHTML = emptyQuad('Ingen statistiske trafikkavvik siste 24 t.');
     } else {
       const items = anomalies.slice(0, 3).map(a => {
         const name = a.asn_name || (a.asn ? `AS${a.asn}` : '—');
@@ -786,8 +786,8 @@ function applySnapshot(data) {
     if (delta > 0) {
       const ddosColor = delta <= 20 ? 'var(--amber)' : 'var(--red)';
       const countStr = alerts.length > 0
-        ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> sikkerhetshendelser detektert siste 24 t.`
-        : 'Ingen sikkerhetshendelser detektert siste 24 t.';
+        ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> sikkerhetshendelser detektert siste 24 t.`
+        : 'Ingen sikkerhetshendelser detektert siste 24 t.';
       heroEl.innerHTML = `DDoS-aktivitet ligger <span class="acc" style="color:${ddosColor}">${absDelta}%</span> over snitt. ${countStr}`;
     } else {
       heroEl.innerHTML = `DDoS-aktivitet er <span class="acc" style="color:var(--green)">${absDelta}%</span> under snitt. Ingen aktive sikkerhetsvarsler.`;
