@@ -153,7 +153,7 @@
     #quad-tilgjengelighet { border-top: 1px solid var(--border); }
     #quad-trafikkavvik { border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
     .quad-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; flex-shrink: 0; }
-    .quad-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--dim); }
+    .quad-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text); }
     .quad-sub { font-size: 11.5px; color: var(--dim); }
     .quad-stat { font-size: 12px; font-weight: 600; }
     .quad-body { display: flex; flex-direction: column; gap: 8px; flex: 1; }
@@ -204,7 +204,7 @@
     .source-footer { padding: 24px 40px 32px; border-top: 1px solid var(--border); }
     .source-footer-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 1.6px; color: var(--dimmer); text-transform: uppercase; margin-bottom: 10px; }
     .source-footer-items { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--dim); line-height: 1.5; }
-    .source-footer-items strong { color: var(--text); font-weight: 600; }
+    .source-footer-items strong { color: var(--dim); font-weight: 600; }
 
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--card); }
@@ -228,7 +228,6 @@
     @media (max-width: 1099px) {
       .nav-links { gap: 14px; }
       .nav-link { font-size: 12.5px; }
-      #nav-clock { display: none !important; }
     }
     @media (max-width: 959px) {
       .nav-links { display: none; }
@@ -237,6 +236,7 @@
     /* Bare green dots without labels are noise — hide both indicators on phones */
     @media (max-width: 700px) {
       .nav-right .status-indicator { display: none; }
+      #refresh-area { display: none !important; }
     }
     .skip-link {
       position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
@@ -293,7 +293,12 @@
   <div class="nav-right">
     <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE</span></span>
     <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
-    <span id="nav-clock">--:--:--</span>
+    <span id="refresh-area" style="display:flex;align-items:center;gap:5px">
+      <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">--:--</span>
+      <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--dimmer);display:flex;align-items:center" aria-label="Oppdater dashboardet nå">
+        <svg id="refresh-icon" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2A6 6 0 1 0 12 6.5"/><polyline points="9 0 12 2 10 5"/></svg>
+      </button>
+    </span>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Bytt til lys modus">
       <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="3.2"/><line x1="8" y1="1" x2="8" y2="2.5"/><line x1="8" y1="13.5" x2="8" y2="15"/><line x1="1" y1="8" x2="2.5" y2="8"/><line x1="13.5" y1="8" x2="15" y2="8"/><line x1="3.34" y1="3.34" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="12.66" y2="12.66"/><line x1="3.34" y1="12.66" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="12.66" y2="3.34"/></svg>
       <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="#2d5082" stroke="#2d5082" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -345,7 +350,7 @@
   <div class="quad" id="quad-ddos">
     <div class="quad-header">
       <span class="quad-title">DDoS-aktivitet</span>
-      <span class="quad-sub">siste 24 timer · normalisert intensitet</span>
+      <a href="/ddos" class="quad-sub" style="text-decoration:none">normalisert intensitet →</a>
       <span style="flex:1"></span>
       <span id="ddos-delta" class="quad-stat" style="color:var(--dim)">—</span>
     </div>
@@ -355,10 +360,6 @@
     <div class="chart-legend" style="padding:8px 0 0">
       <span class="leg-item"><span class="leg-line" style="background:var(--amber)"></span>L7 (app)</span>
       <span class="leg-item"><span class="leg-line" style="background:var(--red)"></span>L3/4 (volum)</span>
-      <span style="flex:1"></span>
-      <a href="/ddos" style="font-size:11.5px;color:var(--dim);display:inline-flex;align-items:center;gap:4px">Detaljer
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 5h6M5 2l3 3-3 3"/></svg>
-      </a>
     </div>
   </div>
 
@@ -366,15 +367,12 @@
   <div class="quad" id="quad-sikkerhet">
     <div class="quad-header">
       <span class="quad-title">Sikkerhet</span>
-      <span class="quad-sub">BGP-hendelser siste 24 t</span>
+      <a href="/bgp" class="quad-sub" style="text-decoration:none">BGP-hendelser →</a>
       <span style="flex:1"></span>
       <span id="sec-count" class="quad-stat" style="color:var(--dimmer)">—</span>
     </div>
     <div class="quad-body" id="quad-sec-body">
       <div style="color:var(--dim);font-size:12px">Laster…</div>
-    </div>
-    <div class="quad-footer">
-      <a href="/bgp" style="font-size:11.5px;color:var(--dim)">Se BGP-aktivitet →</a>
     </div>
   </div>
 
@@ -382,15 +380,12 @@
   <div class="quad" id="quad-tilgjengelighet">
     <div class="quad-header">
       <span class="quad-title">Tilgjengelighet</span>
-      <span class="quad-sub">nettavbrudd siste 24 t</span>
+      <a href="/tilgjengelighet" class="quad-sub" style="text-decoration:none">nettavbrudd →</a>
       <span style="flex:1"></span>
       <span id="out-count" class="quad-stat" style="color:var(--dimmer)">—</span>
     </div>
     <div class="quad-body" id="quad-out-body">
       <div style="color:var(--dim);font-size:12px">Laster…</div>
-    </div>
-    <div class="quad-footer">
-      <a href="/tilgjengelighet" style="font-size:11.5px;color:var(--dim)">Se Tilgjengelighet →</a>
     </div>
   </div>
 
@@ -398,15 +393,12 @@
   <div class="quad" id="quad-trafikkavvik">
     <div class="quad-header">
       <span class="quad-title">Trafikkavvik</span>
-      <span class="quad-sub">statistiske trafikkavvik siste 24 t</span>
+      <a href="/tilgjengelighet#trafikkavvik" class="quad-sub" style="text-decoration:none">statistiske trafikkavvik →</a>
       <span style="flex:1"></span>
       <span id="anom-count" class="quad-stat" style="color:var(--dimmer)">—</span>
     </div>
     <div class="quad-body" id="quad-anom-body">
       <div style="color:var(--dim);font-size:12px">Laster…</div>
-    </div>
-    <div class="quad-footer">
-      <a href="/tilgjengelighet#trafikkavvik" style="font-size:11.5px;color:var(--dim)">Se Tilgjengelighet →</a>
     </div>
   </div>
 
@@ -416,8 +408,8 @@
 <div class="source-footer">
   <div class="source-footer-label">Kilder</div>
   <div class="source-footer-items">
-    <div><strong>Cloudflare Radar</strong> — DDoS-intensitet, nettavbrudd, trafikkavvik, BGP-hijack-klassifisering</div>
-    <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW) fra norske ASN-er</div>
+    <div><strong>Cloudflare Radar</strong> — DDoS-intensitet, nettavbrudd, trafikkavvik, BGP-hijack-klassifisering og rutelekkasjer</div>
+    <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW). Nettradar detekterer hijacks der ikke-norske ASN-er annonserer norske prefikser.</div>
   </div>
 </div>
 </main>
@@ -470,16 +462,27 @@ document.querySelectorAll('.drawer-link').forEach(a => a.addEventListener('click
 document.addEventListener('click', function(e) { if (!document.querySelector('nav.nav').contains(e.target)) closeNav(); });
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeNav(); });
 
-// ── Clock ──────────────────────────────────────────────────────────────────
-function updateClock() {
-  const fmt = window.innerWidth > 480
-    ? {hour:'2-digit',minute:'2-digit',second:'2-digit'}
-    : {hour:'2-digit',minute:'2-digit'};
-  document.getElementById('nav-clock').textContent =
-    new Date().toLocaleTimeString('nb-NO', fmt);
+// ── Refresh ────────────────────────────────────────────────────────────────
+function flashRefresh() {
+  const icon = document.getElementById('refresh-icon');
+  const btn = document.getElementById('refresh-btn');
+  if (!icon || !btn) return;
+  btn.style.color = 'var(--text)';
+  icon.style.animation = 'spin 0.5s linear';
+  icon.style.transformOrigin = 'center';
+  icon.addEventListener('animationend', () => {
+    icon.style.animation = '';
+    btn.style.color = 'var(--dimmer)';
+  }, { once: true });
 }
-setInterval(updateClock, 1000);
-updateClock();
+function markUpdated() {
+  const el = document.getElementById('refresh-cd');
+  if (el) el.textContent = new Date().toLocaleTimeString('nb-NO', {hour:'2-digit', minute:'2-digit'});
+}
+function triggerRefresh() {
+  flashRefresh();
+  connect();
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function flag(code) {
@@ -565,12 +568,12 @@ ro.observe(document.getElementById('chart-wrap'));
 // ── Render helpers ─────────────────────────────────────────────────────────
 function emptyQuad(tagline) {
   return `
-    <div style="background:rgba(79,213,138,.05);border:1px solid rgba(79,213,138,.12);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+    <div style="background:rgba(79,213,138,.05);border:1px solid rgba(79,213,138,.12);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:10px;flex:1">
       <div style="display:flex;align-items:center;gap:7px">
         <span style="width:7px;height:7px;border-radius:3.5px;background:var(--green);flex-shrink:0;animation:c-pulse 2.5s ease-in-out infinite"></span>
         <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.6px;color:var(--green)">ALT OK</span>
       </div>
-      <div style="font-size:12px;color:var(--dim);line-height:1.4">${tagline}</div>
+      <div style="font-size:13px;color:var(--dim);line-height:1.5">${tagline}</div>
     </div>`;
 }
 
@@ -809,18 +812,21 @@ function applySnapshot(data) {
 }
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
+let ws = null;
 function connect() {
+  if (ws) { ws.onclose = null; ws.close(); }
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+  ws = new WebSocket(`${proto}://${location.host}/ws`);
   ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
   ws.onmessage = e => {
     const msg = JSON.parse(e.data);
-    if (msg.type === 'state_snapshot') applySnapshot(msg.data);
+    if (msg.type === 'state_snapshot') { applySnapshot(msg.data); saveSnapshot(msg.data); markUpdated(); }
     else if (msg.type === 'radar_update') {
       const r = msg.data;
       renderIncidentBanner(r.active_outages || []);
       renderTimelineStrip(r);
       renderHendelser([], r.active_outages || [], r.traffic_anomaly_events || [], noAsns);
+      markUpdated();
     }
   };
   ws.onclose = () => {
@@ -829,6 +835,20 @@ function connect() {
   };
   ws.onerror = () => ws.close();
 }
+
+function saveSnapshot(data) {
+  try { sessionStorage.setItem('nt-snapshot', JSON.stringify({ ts: Date.now(), data })); } catch(_) {}
+}
+function restoreSnapshot() {
+  try {
+    const raw = sessionStorage.getItem('nt-snapshot');
+    if (!raw) return;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts > 120000) return;
+    applySnapshot(data);
+  } catch(_) {}
+}
+restoreSnapshot();
 connect();
 
 </script>
