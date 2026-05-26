@@ -10,7 +10,7 @@ from .models import BGPEvent, RadarState
 
 logger = logging.getLogger(__name__)
 
-event_buffer: deque[BGPEvent] = deque(maxlen=500)
+event_buffer: deque[BGPEvent] = deque(maxlen=2000)
 no_asn_names: dict[int, str] = {}
 no_prefix_set: set[str] = set()
 radar_state: RadarState = RadarState()
@@ -25,7 +25,8 @@ _asn_activity: dict[int, int] = {}
 def record_event(event: BGPEvent) -> None:
     global _event_counter, top_asn
     event_buffer.append(event)
-    _event_counter += 1
+    if event.matched_no_asns:
+        _event_counter += 1
     for asn in event.matched_no_asns:
         _asn_activity[asn] = _asn_activity.get(asn, 0) + 1
     if _asn_activity:
@@ -60,7 +61,7 @@ def build_snapshot() -> dict:
     return {
         "type": "state_snapshot",
         "data": {
-            "events": [e.model_dump() for e in list(event_buffer)[-100:]],
+            "events": [e.model_dump() for e in list(event_buffer)[-500:]],
             "radar": radar_state.model_dump(),
             "no_asns": {str(k): v for k, v in no_asn_names.items()},
             "events_per_minute": events_per_minute,

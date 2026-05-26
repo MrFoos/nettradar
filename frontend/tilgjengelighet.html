@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nettradar — Tilgjengelighet</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="apple-touch-icon" href="/static/favicon.svg">
+  <link rel="canonical" href="https://nettradar.no/tilgjengelighet">
+  <meta name="description" content="Nettavbrudd og trafikkavvik i norsk internettinfrastruktur. Sanntidsdata fra Cloudflare Radar.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nettradar.no/tilgjengelighet">
+  <meta property="og:title" content="Nettradar — Tilgjengelighet">
+  <meta property="og:description" content="Nettavbrudd og trafikkavvik i norsk internettinfrastruktur. Sanntidsdata fra Cloudflare Radar.">
+  <meta property="og:locale" content="nb_NO">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0c; --text: #f5f5f7; --dim: #a8a8b3; --dimmer: #7a7a8a;
+      --card: #0f0f12; --card-elevated: #13131a; --border: rgba(255,255,255,0.07);
+      --accent: #d4d4dc; --red: #ff6b5b; --amber: #f5b942; --green: #4fd58a; --blue: #7cb6ff;
+    }
+    [data-theme="light"] {
+      --bg: #f7f6f3; --text: #15151a; --dim: #5a5a63; --dimmer: #8a8a93;
+      --card: #ffffff; --card-elevated: #ffffff; --border: rgba(15,15,26,0.10);
+      --accent: #15151a; --red: #d83a2e; --amber: #b87a0c; --green: #1f7a3e; --blue: #1e5fc9;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 13px; font-feature-settings: "cv11","ss01";
+    }
+    a { color: inherit; text-decoration: none; }
+    @keyframes c-pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* NAV */
+    .nav {
+      display: flex; align-items: center; padding: 24px 40px 18px; gap: 28px;
+      border-bottom: 1px solid var(--border); position: sticky; top: 0;
+      background: var(--bg); z-index: 10;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; }
+    .nav-links { display: flex; gap: 18px; margin-left: 20px; }
+    .nav-link { font-size: 13px; color: var(--dim); font-weight: 500; transition: color .15s; }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.active { color: var(--text); font-weight: 600; }
+    .nav-right {
+      display: flex; align-items: center; gap: 14px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--dim);
+    }
+    .status-indicator { display: inline-flex; align-items: center; gap: 5px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 3px; background: var(--dimmer); display: inline-block; }
+    .status-dot.live { background: var(--green); animation: c-pulse 2.5s ease-in-out infinite; }
+    .theme-btn {
+      width: 34px; height: 34px; border-radius: 50%; cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center; border: 1.5px solid;
+      transition: transform .15s, background .15s, border-color .15s;
+    }
+    .theme-btn:hover { transform: scale(1.05); }
+    [data-theme="dark"]  .theme-btn { color:#f5b942; border-color:rgba(245,185,66,.3); background:rgba(245,185,66,.07); }
+    [data-theme="dark"]  .theme-btn:hover { border-color:rgba(245,185,66,.5); background:rgba(245,185,66,.13); }
+    [data-theme="light"] .theme-btn { color:#2d5082; border-color:rgba(45,80,130,.25); background:rgba(45,80,130,.06); }
+    [data-theme="light"] .theme-btn:hover { border-color:rgba(45,80,130,.45); background:rgba(45,80,130,.11); }
+    .theme-icon-sun, .theme-icon-moon { display: none; pointer-events: none; }
+    [data-theme="dark"]  .theme-icon-sun  { display: block; }
+    [data-theme="light"] .theme-icon-moon { display: block; }
+    .hamburger-btn {
+      display: none; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border);
+      background: transparent; color: var(--text); cursor: pointer;
+      transition: background .15s, border-color .15s; padding: 0; position: relative; flex-shrink: 0;
+    }
+    .hamburger-btn:hover { background: var(--card-elevated); }
+    .ham-icon, .ham-close {
+      position: absolute; display: flex; align-items: center; justify-content: center;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .ham-icon { opacity: 1; transform: scale(1) rotate(0deg); }
+    .ham-close { opacity: 0; transform: scale(.7) rotate(-45deg); }
+    .hamburger-btn[aria-expanded="true"] .ham-icon { opacity: 0; transform: scale(.7) rotate(45deg); }
+    .hamburger-btn[aria-expanded="true"] .ham-close { opacity: 1; transform: scale(1) rotate(0deg); }
+    .nav-drawer {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+      display: flex; flex-direction: column;
+      background: var(--card-elevated); border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0,0,0,.28); padding: 12px 0;
+      visibility: hidden; opacity: 0; transform: translateY(-8px); pointer-events: none;
+      transition: opacity 180ms ease-out, transform 180ms ease-out, visibility 0ms 180ms;
+    }
+    [data-theme="light"] .nav-drawer { box-shadow: 0 8px 24px rgba(0,0,0,.09); }
+    .nav-drawer.open {
+      visibility: visible; opacity: 1; transform: translateY(0); pointer-events: auto;
+      transition: opacity 180ms ease-out, transform 180ms ease-out;
+    }
+    .drawer-link {
+      display: block; font-size: 16px; font-weight: 500; color: var(--dim);
+      padding: 14px 24px; border-left: 3px solid transparent; border-bottom: 1px solid var(--border);
+      transition: color .15s, background .15s, border-left-color .15s;
+    }
+    .drawer-link:last-child { border-bottom: none; }
+    .drawer-link:hover, .drawer-link:focus-visible { color: var(--text); background: rgba(255,255,255,.04); outline: none; }
+    [data-theme="light"] .drawer-link:hover, [data-theme="light"] .drawer-link:focus-visible { background: rgba(0,0,0,.04); }
+    .drawer-link.active { color: var(--text); border-left-color: var(--accent); background: rgba(255,255,255,.03); }
+    [data-theme="light"] .drawer-link.active { background: rgba(0,0,0,.03); }
+
+    /* LAYOUT */
+    .page-label { font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--dim); margin-bottom: 12px; }
+    .hero { padding: 32px 40px 24px; }
+    .hero-h1 { font-size: 42px; font-weight: 500; letter-spacing: -1.4px; line-height: 1.05; margin: 0 0 22px; max-width: 900px; text-wrap: balance; }
+    .hero-stats { display: flex; gap: 48px; flex-wrap: wrap; }
+    .stat-label { font-size: 11px; color: var(--dim); margin-bottom: 4px; }
+    .stat-num { font-size: 26px; font-weight: 500; letter-spacing: -.8px; font-variant-numeric: tabular-nums; line-height: 1; font-family: 'JetBrains Mono', monospace; }
+    .stat-unit { font-size: 13px; color: var(--dim); }
+    .section { padding: 0 40px; margin-bottom: 24px; }
+    .section-header {
+      display: flex; align-items: baseline; gap: 12px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+    }
+    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--dim); }
+    .section-sub { font-size: 11.5px; color: var(--dim); }
+
+    /* OUTAGE CARD */
+    .outage-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      border-left: 3px solid var(--amber); padding: 20px 22px; position: relative; overflow: hidden;
+    }
+    .outage-badge {
+      display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: 1.3px;
+      padding: 3px 8px; border-radius: 3px; color: var(--amber); background: rgba(245,185,66,.12);
+    }
+
+    /* ANOMALY CARD */
+    .anomaly-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .anomaly-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px 18px; border-left: 3px solid var(--blue);
+    }
+    .anomaly-badge {
+      display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: 1.3px;
+      padding: 3px 8px; border-radius: 3px; color: var(--blue); background: rgba(124,182,255,.12);
+    }
+    .dir-up { color: var(--red); }
+    .dir-down { color: var(--blue); }
+
+    /* HISTORIKK TABLE */
+    .hist-table { width: 100%; border-collapse: collapse; }
+    .hist-table th {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.1px; text-transform: uppercase;
+      color: var(--dim); padding: 10px 22px; border-bottom: 1px solid var(--border); text-align: left;
+    }
+    .hist-table td { padding: 12px 22px; border-bottom: 1px solid var(--border); font-size: 12.5px; vertical-align: middle; }
+    .hist-table tr:last-child td { border-bottom: none; }
+    .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    .text-right { text-align: right; }
+    .text-dim { color: var(--dim); }
+
+    /* EMPTY STATE */
+    .empty-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 32px 28px; display: flex; align-items: flex-start; gap: 20px;
+    }
+    .empty-icon {
+      width: 40px; height: 40px; border-radius: 20px; background: rgba(79,213,138,.10);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .empty-stats { display: flex; gap: 28px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+    /* SOURCE FOOTER */
+    .source-footer { padding: 24px 40px 32px; border-top: 1px solid var(--border); }
+    .source-footer-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 1.6px; color: var(--dimmer); text-transform: uppercase; margin-bottom: 10px; }
+    .source-footer-items { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--dim); line-height: 1.5; }
+    .source-footer-items strong { color: var(--text); font-weight: 600; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--card); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    @media (max-width: 1099px) {
+      .nav-links { gap: 14px; }
+      .nav-link { font-size: 12.5px; }
+      #nav-clock { display: none !important; }
+      .anomaly-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 959px) {
+      .nav-links { display: none; }
+      .hamburger-btn { display: flex; }
+      .hero { padding: 24px 20px 20px; }
+      .hero-h1 { font-size: 30px; letter-spacing: -1px; }
+      .hero-stats { gap: 24px 32px; }
+      .section { padding: 0 20px; }
+      .nav { padding: 18px 20px 14px; gap: 14px; }
+      .anomaly-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .nav-right .status-indicator { display: none; }
+    }
+    .skip-link {
+      position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
+    }
+    .skip-link:focus {
+      position: fixed; top: 8px; left: 8px; width: auto; height: auto;
+      padding: 8px 16px; background: var(--bg); color: var(--text);
+      border: 2px solid var(--accent); border-radius: 6px;
+      font-size: 13px; font-weight: 600; z-index: 9999;
+    }
+  </style>
+  <script defer src="https://umami.nettradar.no/script.js" data-website-id="1c7c3c7e-4456-4d21-8837-d4dab429f5ab"></script>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Hopp til innhold</a>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="/" class="nav-brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="10" stroke="var(--accent)" stroke-width="1.2" opacity=".25"/>
+      <circle cx="11" cy="11" r="6.5" stroke="var(--accent)" stroke-width="1.2" opacity=".5"/>
+      <circle cx="11" cy="11" r="2.5" fill="var(--accent)"/>
+    </svg>
+    <span><span style="font-size:19px;font-weight:700;letter-spacing:-.4px">nettradar</span><span style="font-size:19px;font-weight:400;color:var(--dim);letter-spacing:-.4px">.no</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/ddos" class="nav-link">DDoS</a>
+    <a href="/bgp" class="nav-link">BGP-aktivitet</a>
+    <a href="/tilgjengelighet" class="nav-link active">Tilgjengelighet</a>
+    <a href="/om" class="nav-link">Om Nettradar</a>
+  </div>
+  <span style="flex:1"></span>
+  <div class="nav-right">
+    <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE</span></span>
+    <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
+    <span id="nav-clock">--:--:--</span>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Bytt til lys modus">
+      <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="3.2"/><line x1="8" y1="1" x2="8" y2="2.5"/><line x1="8" y1="13.5" x2="8" y2="15"/><line x1="1" y1="8" x2="2.5" y2="8"/><line x1="13.5" y1="8" x2="15" y2="8"/><line x1="3.34" y1="3.34" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="12.66" y2="12.66"/><line x1="3.34" y1="12.66" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="12.66" y2="3.34"/></svg>
+      <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="#2d5082" stroke="#2d5082" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleNav()" aria-expanded="false" aria-label="Åpne meny">
+      <svg class="ham-icon" width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="0" y1="1" x2="18" y2="1"/><line x1="0" y1="6" x2="18" y2="6"/><line x1="0" y1="11" x2="18" y2="11"/></svg>
+      <svg class="ham-close" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+    </button>
+  </div>
+  <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigasjonsmeny">
+    <a href="/" class="drawer-link">Dashboard</a>
+    <a href="/ddos" class="drawer-link">DDoS</a>
+    <a href="/bgp" class="drawer-link">BGP-aktivitet</a>
+    <a href="/tilgjengelighet" class="drawer-link active">Tilgjengelighet</a>
+    <a href="/om" class="drawer-link">Om Nettradar</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main id="main-content">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="page-label">Tilgjengelighet</div>
+  <h1 class="hero-h1" id="hero-h1">Laster…</h1>
+  <div class="hero-stats">
+    <div>
+      <div class="stat-label">Aktive avbrudd</div>
+      <div style="display:flex;align-items:baseline;gap:4px"><span class="stat-num" id="stat-outages">—</span></div>
+    </div>
+    <div>
+      <div class="stat-label">Trafikkavvik 24 t</div>
+      <div style="display:flex;align-items:baseline;gap:4px"><span class="stat-num" id="stat-anomalies">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- AKTIVE NETTAVBRUDD -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">Aktive nettavbrudd</span>
+    <span class="section-sub">aktive nettavbrudd</span>
+    <span style="flex:1"></span>
+    <span id="outages-status" style="font-size:12px;color:var(--dim)">—</span>
+  </div>
+  <div id="outages-area">
+    <div style="color:var(--dim);font-size:13px;padding:16px 0">Laster…</div>
+  </div>
+</div>
+
+<!-- TRAFIKKAVVIK -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">Trafikkavvik</span>
+    <span class="section-sub">statistiske avvik fra forventet trafikkvolum per ASN/region</span>
+    <span style="flex:1"></span>
+    <span id="anomalies-count" style="font-size:12px;color:var(--dim)">—</span>
+  </div>
+  <div class="anomaly-grid" id="anomalies-area">
+    <div style="color:var(--dim);font-size:13px;padding:16px 0">Laster…</div>
+  </div>
+</div>
+
+<!-- HISTORIKK -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">Historikk siste 30 dager</span>
+    <span class="section-sub">alle registrerte nettavbrudd og signifikante trafikkavvik</span>
+  </div>
+  <div id="historikk-area">
+    <div style="color:var(--dim);font-size:13px;padding:16px 0">Laster historikk…</div>
+  </div>
+</div>
+
+<!-- SOURCE FOOTER -->
+<div class="source-footer">
+  <div class="source-footer-label">Kilder</div>
+  <div class="source-footer-items">
+    <div><strong>Cloudflare Radar</strong> — Nettavbrudd, trafikkavvik og BGP-hijack-klassifisering. Nettradar tilføyer ingen egne klassifiseringer.</div>
+    <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW) fra norske ASN-er</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ── Theme ──────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('nt-theme', t);
+  document.getElementById('theme-btn').setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus');
+}
+(function(){
+  const t = localStorage.getItem('nt-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus');
+})();
+
+// ── Nav drawer ──────────────────────────────────────────────────────────────
+function _navTrap(e) {
+  const focusable = Array.from(document.getElementById('nav-drawer').querySelectorAll('a[href], button:not([disabled])'));
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (e.key !== 'Tab') return;
+  if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+  else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+}
+function openNav() {
+  const btn = document.getElementById('hamburger-btn'), drawer = document.getElementById('nav-drawer');
+  drawer.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Lukk meny');
+  drawer.addEventListener('keydown', _navTrap);
+  requestAnimationFrame(() => { const f = drawer.querySelector('a[href]'); if (f) f.focus(); });
+}
+function closeNav() {
+  const btn = document.getElementById('hamburger-btn'), drawer = document.getElementById('nav-drawer');
+  if (!drawer.classList.contains('open')) return;
+  drawer.classList.remove('open'); drawer.removeEventListener('keydown', _navTrap);
+  btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-label', 'Åpne meny'); btn.focus();
+}
+function toggleNav() { if (document.getElementById('nav-drawer').classList.contains('open')) closeNav(); else openNav(); }
+document.querySelectorAll('.drawer-link').forEach(a => a.addEventListener('click', closeNav));
+document.addEventListener('click', function(e) { if (!document.querySelector('nav.nav').contains(e.target)) closeNav(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeNav(); });
+
+// ── Clock ──────────────────────────────────────────────────────────────────
+function updateClock() {
+  const fmt = window.innerWidth > 480 ? {hour:'2-digit',minute:'2-digit',second:'2-digit'} : {hour:'2-digit',minute:'2-digit'};
+  document.getElementById('nav-clock').textContent = new Date().toLocaleTimeString('nb-NO', fmt);
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function timeAgo(ts) {
+  const d = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+  if (d < 60) return d + 's siden';
+  if (d < 3600) return Math.floor(d / 60) + ' min siden';
+  if (d < 86400) return Math.floor(d / 3600) + ' t siden';
+  return Math.floor(d / 86400) + ' d siden';
+}
+function durFmt(start, end) {
+  const ms = new Date(end || Date.now()).getTime() - new Date(start).getTime();
+  const min = Math.floor(ms / 60000);
+  if (min < 60) return min + ' min';
+  return Math.floor(min / 60) + ' t ' + (min % 60) + ' m';
+}
+
+// ── Render outages ─────────────────────────────────────────────────────────
+function renderOutages(outages) {
+  const area = document.getElementById('outages-area');
+  const statusEl = document.getElementById('outages-status');
+  const heroEl = document.getElementById('hero-h1');
+  const statOutages = document.getElementById('stat-outages');
+
+  statOutages.textContent = outages.length;
+
+  if (outages.length === 0) {
+    statusEl.style.color = 'var(--green)';
+    statusEl.textContent = '● ingen pågående';
+    heroEl.innerHTML = `Ingen aktive nettavbrudd. <span style="color:var(--dim);font-weight:400">Norske ASN-er svarer normalt.</span>`;
+    area.innerHTML = `
+      <div style="background:rgba(79,213,138,.05);border:1px solid rgba(79,213,138,.12);border-radius:14px;padding:28px 28px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:8px;height:8px;border-radius:4px;background:var(--green);flex-shrink:0;animation:c-pulse 2.5s ease-in-out infinite"></span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.6px;color:var(--green)">ALT OK</span>
+        </div>
+        <div style="font-size:15px;font-weight:500;letter-spacing:-.2px">Ingen aktive nettavbrudd</div>
+        <div style="font-size:13px;color:var(--dim);line-height:1.5">Norske ASN-er svarer normalt og prefikser er synlige i BGP-tabellen.</div>
+      </div>`;
+    return;
+  }
+
+  statusEl.style.color = 'var(--amber)';
+  statusEl.textContent = `${outages.length} pågående`;
+  heroEl.innerHTML = `<span class="mono" style="color:var(--amber)">${outages.length}</span> aktivt nettavbrudd pågår.`;
+  area.innerHTML = outages.map(o => `
+    <div class="outage-card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span class="outage-badge">NETTAVBRUDD</span>
+        <span style="font-size:11px;color:var(--dim)">Startet ${timeAgo(o.start_time)} · pågår</span>
+      </div>
+      <div style="font-size:16px;font-weight:500;letter-spacing:-.2px;margin-bottom:4px">
+        ${o.asn_name || o.location || 'Ukjent ASN'} ${o.asn ? `<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)">AS${o.asn}</span>` : ''}
+      </div>
+      ${o.description ? `<div style="font-size:13px;color:var(--dim)">${o.description}</div>` : ''}
+      ${o.type && o.type.toUpperCase() !== 'OUTAGE' ? `<div style="font-size:11px;color:var(--dim);margin-top:8px">${o.type}</div>` : ''}
+    </div>`).join('');
+}
+
+// ── Render anomalies ────────────────────────────────────────────────────────
+function renderAnomalies(anomalies) {
+  const area = document.getElementById('anomalies-area');
+  const countEl = document.getElementById('anomalies-count');
+  const statEl = document.getElementById('stat-anomalies');
+
+  statEl.textContent = anomalies.length;
+  countEl.textContent = `${anomalies.length} flagget siste 24 t`;
+
+  if (anomalies.length === 0) {
+    area.className = '';
+    area.innerHTML = `
+      <div style="background:rgba(79,213,138,.05);border:1px solid rgba(79,213,138,.12);border-radius:14px;padding:28px 28px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:8px;height:8px;border-radius:4px;background:var(--green);flex-shrink:0;animation:c-pulse 2.5s ease-in-out infinite"></span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.6px;color:var(--green)">ALT OK</span>
+        </div>
+        <div style="font-size:15px;font-weight:500;letter-spacing:-.2px">Ingen trafikkavvik registrert</div>
+        <div style="font-size:13px;color:var(--dim);line-height:1.5">Ingen statistiske avvik fra forventet trafikkvolum er detektert siste 24 timer.</div>
+      </div>`;
+    return;
+  }
+
+  area.className = 'anomaly-grid';
+  area.innerHTML = anomalies.map(a => `
+    <div class="anomaly-card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span class="anomaly-badge">TRAFIKKAVVIK</span>
+        <span style="font-size:11px;color:var(--dim)">${timeAgo(a.start_time)}</span>
+      </div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:2px">${a.asn_name || a.location || 'Ukjent'}</div>
+      ${a.asn ? `<div class="mono" style="font-size:11px;color:var(--dim);margin-bottom:8px">AS${a.asn}</div>` : ''}
+      <div style="font-size:12.5px;color:var(--dim)">${a.type} · ${a.status}</div>
+      ${a.score != null ? `<div style="margin-top:8px;font-size:11px;color:var(--dim)">Score: <span class="mono">${a.score.toFixed(2)}</span></div>` : ''}
+    </div>`).join('');
+}
+
+// ── Render historikk ────────────────────────────────────────────────────────
+function renderHistorikk(outages, anomalies) {
+  const area = document.getElementById('historikk-area');
+  const all = [
+    ...outages.map(o => ({ ...o, _kind: 'outage' })),
+    ...anomalies.map(a => ({ ...a, _kind: 'anomaly' })),
+  ].sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+
+  if (all.length === 0) {
+    area.innerHTML = `
+      <div style="background:rgba(79,213,138,.05);border:1px solid rgba(79,213,138,.12);border-radius:14px;padding:28px 28px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:8px;height:8px;border-radius:4px;background:var(--green);flex-shrink:0;animation:c-pulse 2.5s ease-in-out infinite"></span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.6px;color:var(--green)">ALT OK</span>
+        </div>
+        <div style="font-size:15px;font-weight:500;letter-spacing:-.2px">Ingen registrerte hendelser siste 30 dager</div>
+        <div style="font-size:13px;color:var(--dim);line-height:1.5">Verken nettavbrudd eller signifikante trafikkavvik er rapportert mot norsk infrastruktur den siste måneden.</div>
+      </div>`;
+    return;
+  }
+
+  area.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+      <table class="hist-table">
+        <thead><tr>
+          <th style="width:110px">Tidspunkt</th>
+          <th style="width:130px">Type</th>
+          <th>Detalj</th>
+          <th style="width:120px">ASN</th>
+          <th class="text-right" style="width:100px">Varighet</th>
+        </tr></thead>
+        <tbody>${all.map(e => {
+    const isOutage = e._kind === 'outage';
+    const c = isOutage ? 'var(--amber)' : 'var(--blue)';
+    const label = isOutage ? 'NETTAVBRUDD' : 'TRAFIKKAVVIK';
+    const cbg = isOutage ? 'rgba(245,185,66,.12)' : 'rgba(124,182,255,.12)';
+    const dt = new Date(e.start_time);
+    const dateStr = dt.toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' });
+    const timeStr = dt.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
+    return `
+          <tr>
+            <td class="mono text-dim" style="font-size:11.5px">${dateStr}<br>${timeStr}</td>
+            <td><span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:${c};padding:3px 8px;background:${cbg};border-radius:3px">${label}</span></td>
+            <td><div style="font-weight:500">${e.asn_name || e.location || '—'}</div>${e.description ? `<div style="font-size:11.5px;color:var(--dim);margin-top:2px">${e.description}</div>` : ''}</td>
+            <td class="mono text-dim" style="font-size:11.5px">${e.asn ? `AS${e.asn}` : '—'}</td>
+            <td class="mono text-right" style="font-size:12px">${e.end_time ? durFmt(e.start_time, e.end_time) : 'pågår'}</td>
+          </tr>`;
+  }).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── State ──────────────────────────────────────────────────────────────────
+let noAsns = {};
+
+function applySnapshot(data) {
+  noAsns = {};
+  Object.entries(data.no_asns || {}).forEach(([k, v]) => { noAsns[parseInt(k)] = v; });
+
+  const radar = data.radar || {};
+  const outages = radar.active_outages || [];
+  const anomalies = radar.traffic_anomaly_events || [];
+
+  renderOutages(outages);
+  renderAnomalies(anomalies);
+  renderHistorikk(outages, anomalies);
+
+  if (radar.last_updated) {
+    document.getElementById('cf-dot').classList.add('live');
+  }
+}
+
+// ── WebSocket ──────────────────────────────────────────────────────────────
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+  ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'state_snapshot') applySnapshot(msg.data);
+    if (msg.type === 'radar_update') applySnapshot({ no_asns: noAsns, radar: msg.data });
+  };
+  ws.onclose = () => {
+    document.getElementById('ripe-dot').classList.remove('live');
+    setTimeout(connect, 3000);
+  };
+  ws.onerror = () => ws.close();
+}
+connect();
+</script>
+</body>
+</html>

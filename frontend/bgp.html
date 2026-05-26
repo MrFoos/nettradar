@@ -31,12 +31,10 @@
       --accent: #15151a; --red: #d83a2e; --amber: #b87a0c; --green: #1f7a3e; --blue: #1e5fc9;
     }
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; }
     body {
-      background: var(--bg); color: var(--text);
+      margin: 0; background: var(--bg); color: var(--text);
       font-family: 'Inter', -apple-system, system-ui, sans-serif;
       font-size: 13px; font-feature-settings: "cv11","ss01";
-      display: flex; flex-direction: column;
     }
     a { color: inherit; text-decoration: none; }
     @keyframes c-pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
@@ -44,7 +42,8 @@
     /* NAV */
     .nav {
       display: flex; align-items: center; padding: 24px 40px 18px; gap: 28px;
-      border-bottom: 1px solid var(--border); flex-shrink: 0;
+      border-bottom: 1px solid var(--border); position: sticky; top: 0;
+      background: var(--bg); z-index: 10;
     }
     .nav-brand { display: flex; align-items: center; gap: 10px; }
     .nav-links { display: flex; gap: 18px; margin-left: 20px; }
@@ -55,9 +54,9 @@
       display: flex; align-items: center; gap: 14px;
       font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--dim);
     }
+    .status-indicator { display: inline-flex; align-items: center; gap: 5px; }
     .status-dot { width: 6px; height: 6px; border-radius: 3px; background: var(--dimmer); display: inline-block; }
     .status-dot.live { background: var(--green); animation: c-pulse 2.5s ease-in-out infinite; }
-    .status-indicator { display: inline-flex; align-items: center; gap: 5px; }
     .theme-btn {
       width: 34px; height: 34px; border-radius: 50%; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center; border: 1.5px solid;
@@ -71,8 +70,6 @@
     .theme-icon-sun, .theme-icon-moon { display: none; pointer-events: none; }
     [data-theme="dark"]  .theme-icon-sun  { display: block; }
     [data-theme="light"] .theme-icon-moon { display: block; }
-    /* HAMBURGER + DRAWER */
-    .nav { position: relative; }
     .hamburger-btn {
       display: none; align-items: center; justify-content: center;
       width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border);
@@ -108,237 +105,141 @@
       transition: color .15s, background .15s, border-left-color .15s;
     }
     .drawer-link:last-child { border-bottom: none; }
-    .drawer-link:hover, .drawer-link:focus-visible {
-      color: var(--text); background: rgba(255,255,255,.04); outline: none;
-    }
-    [data-theme="light"] .drawer-link:hover, [data-theme="light"] .drawer-link:focus-visible {
-      background: rgba(0,0,0,.04);
-    }
-    .drawer-link.active {
-      color: var(--text); border-left-color: var(--accent); background: rgba(255,255,255,.03);
-    }
+    .drawer-link:hover, .drawer-link:focus-visible { color: var(--text); background: rgba(255,255,255,.04); outline: none; }
+    [data-theme="light"] .drawer-link:hover, [data-theme="light"] .drawer-link:focus-visible { background: rgba(0,0,0,.04); }
+    .drawer-link.active { color: var(--text); border-left-color: var(--accent); background: rgba(255,255,255,.03); }
     [data-theme="light"] .drawer-link.active { background: rgba(0,0,0,.03); }
 
     /* HERO */
-    .hero {
-      padding: 32px 40px 26px; flex-shrink: 0;
-    }
+    .hero { padding: 32px 40px 24px; }
     .hero-kicker { font-size: 11px; font-weight: 600; letter-spacing: 1.4px; color: var(--dim); text-transform: uppercase; margin-bottom: 12px; }
-    .hero-h1 { font-size: 40px; font-weight: 500; letter-spacing: -1.2px; line-height: 1.05; margin: 0; }
-    .hero-stats { margin-top: 22px; display: flex; gap: 36px; }
-    .bgp-stat-label { font-size: 10.5px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
-    .bgp-stat-num { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 500; letter-spacing: -.4px; line-height: 1; font-variant-numeric: tabular-nums; }
-    .bgp-stat-sub { font-size: 11px; color: var(--dim); margin-top: 4px; }
+    .hero-h1 { font-size: 38px; font-weight: 500; letter-spacing: -1.2px; line-height: 1.1; margin: 0 0 24px; max-width: 900px; text-wrap: balance; }
+    .hero-stats { display: flex; gap: 44px; flex-wrap: wrap; }
+    .stat-block .stat-label { font-size: 10.5px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--dim); margin-bottom: 4px; }
+    .stat-block .stat-num { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 500; letter-spacing: -.4px; font-variant-numeric: tabular-nums; line-height: 1; }
+    .stat-block .stat-sub { font-size: 11px; color: var(--dim); margin-top: 3px; }
 
-    /* TAB BAR */
-    .tab-bar {
-      display: flex; align-items: stretch; flex-shrink: 0;
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 14px 14px 0 0; padding-right: 22px;
+    /* SECTION */
+    .section { padding: 0 40px; margin-bottom: 28px; }
+    .section-header {
+      display: flex; align-items: baseline; gap: 12px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 14px;
     }
-    .tab-bar-right {
-      align-self: center; display: flex; align-items: center; gap: 6px;
-      font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--dim);
-    }
+    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--dim); }
+    .section-sub { font-size: 11.5px; color: var(--dim); }
 
-    /* VIEW TOGGLE — underline tabs */
-    .view-toggle {
-      display: flex; gap: 28px;
-      padding: 0 22px; margin: 0; align-self: stretch; align-items: center;
+    /* ASN GRID */
+    .asn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .asn-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px; display: flex; flex-direction: column; gap: 10px;
+      position: relative; overflow: hidden;
     }
-    .toggle-btn {
-      appearance: none; background: transparent; border: 0;
-      padding: 12px 2px; margin-bottom: -1px;
-      font: inherit; font-size: 14px; font-weight: 500;
-      color: var(--dim); cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: color .15s, border-color .15s;
-      display: inline-flex; align-items: center; gap: 8px;
-      white-space: nowrap;
+    .asn-stripe { position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: var(--red); pointer-events: none; }
+    .asn-card-top { display: flex; align-items: center; gap: 8px; }
+    .asn-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim); }
+    .flag-badge {
+      font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; color: var(--red);
+      padding: 2px 6px; background: rgba(255,107,91,.15); border-radius: 3px;
     }
-    .toggle-btn:hover { color: var(--text); border-bottom-color: var(--border); }
-    .toggle-btn.active { color: var(--text); border-bottom-color: var(--blue); }
-    .toggle-btn:focus-visible {
-      outline: 2px solid var(--blue); outline-offset: 4px; border-radius: 2px;
+    [data-theme="light"] .flag-badge { background: rgba(216,58,46,.12); }
+    .asn-name { font-size: 13.5px; font-weight: 600; letter-spacing: -.1px; }
+    .asn-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .m-label { font-size: 9.5px; letter-spacing: .8px; text-transform: uppercase; color: var(--dim); margin-bottom: 2px; }
+    .m-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .flag-detail {
+      font-size: 11.5px; color: var(--dim); line-height: 1.4;
+      padding-top: 8px; border-top: 1px solid var(--border); margin-top: auto;
     }
-    .toggle-count {
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 11px; font-weight: 500; color: var(--dim);
-      background: var(--card-elevated); border: 1px solid var(--border);
-      padding: 1px 6px; border-radius: 999px; min-width: 22px; text-align: center;
-    }
-    .toggle-btn.active .toggle-count { color: var(--text); }
+    .flag-detail strong { color: var(--red); font-weight: 600; }
+    .asn-card.asn-silent { border-color: rgba(255,255,255,.035); }
+    [data-theme="light"] .asn-card.asn-silent { border-color: rgba(15,15,26,.05); }
+    .asn-card.asn-silent .asn-name { color: var(--dim); }
+    .asn-stable { display: flex; flex-direction: column; align-items: center; padding: 6px 0; gap: 3px; }
+    .stable-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 1.6px; color: var(--dimmer); }
+    .stable-sub { font-size: 11px; color: var(--dimmer); }
+    .asn-grid-footer { font-size: 11.5px; color: var(--dimmer); margin: 12px 0 0; line-height: 1.5; }
 
-    /* CONTENT AREA */
-    .content-area { flex: 1; padding: 0 40px 32px; min-height: 0; display: flex; flex-direction: column; }
-
-    /* TABLE CARD */
-    .table-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-top: none; border-radius: 0 0 14px 14px;
-      display: flex; flex-direction: column; overflow: hidden; flex: 1;
-    }
-
-    /* SUMMARY TABLE */
-    .table-grid { display: grid; grid-template-columns: 80px 1.6fr 1fr 1fr 1fr 1fr 100px; }
-    .table-header {
-      padding: 10px 22px; font-size: 10.5px; font-weight: 600; letter-spacing: 1.1px;
-      text-transform: uppercase; color: var(--dim); border-bottom: 1px solid var(--border);
-    }
-    .sort-col { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; transition: color .15s; }
-    .sort-col:hover { color: var(--text); }
-    .sort-col.active { }
-    .sort-dot { width: 6px; height: 6px; border-radius: 3px; }
-    .table-body { flex: 1; overflow-y: auto; min-height: 0; }
-    .table-row {
-      padding: 11px 22px; font-size: 13px; align-items: center;
+    /* SIGNIFICANT TABLE */
+    .sig-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .sig-row {
+      display: grid; grid-template-columns: 90px 150px 1fr 110px;
+      padding: 14px 22px; font-size: 13px; align-items: center; gap: 16px;
       border-bottom: 1px solid var(--border); transition: background .1s;
     }
-    .table-row:hover { background: rgba(255,255,255,.02); }
-    .table-row.hijack-row { background: rgba(255,107,91,.07); }
-    [data-theme="light"] .table-row.hijack-row { background: rgba(216,58,46,.07); }
+    .sig-row:last-child { border-bottom: none; }
+    .sig-row:hover { background: rgba(255,255,255,.02); }
+    [data-theme="light"] .sig-row:hover { background: rgba(0,0,0,.02); }
+    .sig-row.high {
+      border-left: 2px solid var(--red); margin-left: -2px; padding-left: 24px;
+      background: rgba(255,107,91,.06);
+    }
+    [data-theme="light"] .sig-row.high { background: rgba(216,58,46,.05); }
+    .sig-empty { padding: 20px 22px; color: var(--dim); font-size: 13px; }
 
-    /* LOG VIEW */
+    /* RAW STREAM */
+    .raw-summary {
+      display: flex; align-items: center; gap: 10px; list-style: none;
+      padding: 13px 18px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; cursor: pointer; transition: background .15s; user-select: none;
+    }
+    .raw-summary:hover { background: var(--card-elevated); }
+    details[open] > .raw-summary { border-radius: 10px 10px 0 0; }
+    .raw-log-wrap {
+      background: var(--card); border: 1px solid var(--border); border-top: none;
+      border-radius: 0 0 10px 10px; max-height: 420px; overflow-y: auto;
+    }
     .log-grid { display: grid; grid-template-columns: 90px 110px 1.4fr 1.6fr 130px; }
     .log-header {
-      padding: 10px 22px; font-size: 10.5px; font-weight: 600; letter-spacing: 1.1px;
+      padding: 9px 22px; font-size: 10px; font-weight: 600; letter-spacing: 1.1px;
       text-transform: uppercase; color: var(--dim); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; background: var(--card);
     }
     .log-row {
-      padding: 9px 22px; font-size: 12px; align-items: center;
+      padding: 8px 22px; font-size: 12px; align-items: center;
       border-bottom: 1px solid var(--border); transition: background .1s;
     }
+    .log-row:last-child { border-bottom: none; }
     .log-row:hover { background: rgba(255,255,255,.02); }
-    .log-row.hijack { background: rgba(255,107,91,.10); border-left: 2px solid var(--red); margin-left: -2px; padding-left: 24px; }
+    .log-row.hijack {
+      background: rgba(255,107,91,.10); border-left: 2px solid var(--red);
+      margin-left: -2px; padding-left: 24px;
+    }
     [data-theme="light"] .log-row.hijack { background: rgba(216,58,46,.08); }
-    .type-badge {
-      font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
-      letter-spacing: 1px; padding: 2px 7px; border-radius: 3px; display: inline-block;
-    }
-    .stream-dot {
-      width: 6px; height: 6px; border-radius: 3px; background: var(--green);
-      box-shadow: 0 0 6px var(--green); display: inline-block;
-      animation: c-pulse 1.5s ease-in-out infinite;
-    }
+    .type-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 2px 7px; border-radius: 3px; }
+    .stream-dot { width: 6px; height: 6px; border-radius: 3px; background: var(--green); box-shadow: 0 0 6px var(--green); display: inline-block; animation: c-pulse 1.5s ease-in-out infinite; }
+
+    /* SOURCE FOOTER */
+    .source-footer { padding: 24px 40px 32px; border-top: 1px solid var(--border); }
+    .source-footer-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 1.6px; color: var(--dimmer); text-transform: uppercase; margin-bottom: 10px; }
+    .source-footer-items { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--dim); line-height: 1.5; }
+    .source-footer-items strong { color: var(--text); font-weight: 600; }
 
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--card); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    @media (max-width: 900px) {
-      .hero { padding: 28px 20px 22px; }
-      .hero-h1 { font-size: 32px; letter-spacing: -.8px; }
-      .hero-stats { flex-wrap: wrap; gap: 20px; }
-      .content-area { padding: 0 20px 28px; }
-      .nav { padding: 18px 20px 14px; gap: 14px; }
-      /* Drop the locked viewport-height layout — let the page scroll naturally on phones */
-      html, body { height: auto; }
-      body { display: block; }
-      .nav { position: sticky; top: 0; background: var(--bg); z-index: 10; }
-      .content-area { display: block; flex: none; }
-      .table-card { flex: none; min-height: 0; }
-      .table-body { overflow: visible; min-height: 0; }
-    }
-    @media (max-width: 1099px) {
-      .nav-links { gap: 14px; }
-      .nav-link { font-size: 12.5px; }
-      #nav-clock { display: none !important; }
-    }
-    @media (max-width: 959px) {
-      .nav-links { display: none; }
-      .hamburger-btn { display: flex; }
-    }
-    @media (max-width: 720px) {
-      .tab-bar {
-        background: transparent; border: none;
-        border-bottom: 1px solid var(--border);
-        border-radius: 0; padding: 0; margin-bottom: 12px;
-      }
-      .tab-bar-right { display: none !important; }
-      .view-toggle { padding: 0; }
-      .table-card { border-top: 1px solid var(--border); border-radius: 14px; }
-    }
-    @media (max-width: 700px) {
-      .nav-right .status-indicator { display: none; }
-      .hero-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; }
-      /* Summary table → stacked cards on phones */
-      .table-header { display: none; }
-      .table-grid.table-row {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        grid-template-areas: "asn name spark" "stats stats stats";
-        gap: 6px 12px; padding: 14px 18px; align-items: center;
-      }
-      .table-grid.table-row > *:nth-child(1) { grid-area: asn; font-size: 11.5px !important; }
-      .table-grid.table-row > *:nth-child(2) { grid-area: name; font-size: 14px !important; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .table-grid.table-row > *:nth-child(6) { grid-area: spark; opacity: .8; }
-      .table-grid.table-row > *:nth-child(3),
-      .table-grid.table-row > *:nth-child(4),
-      .table-grid.table-row > *:nth-child(5),
-      .table-grid.table-row > *:nth-child(7) {
-        display: inline-flex; align-items: baseline; gap: 5px;
-        font-size: 12px !important; text-align: left !important; width: auto !important;
-      }
-      .table-grid.table-row > *:nth-child(3)::before { content: "upd"; color: var(--dim); font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: .5px; }
-      .table-grid.table-row > *:nth-child(4)::before { content: "wd"; color: var(--dim); font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: .5px; }
-      .table-grid.table-row > *:nth-child(5)::before { content: "hi"; color: var(--dim); font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: .5px; }
-      .table-grid.table-row > *:nth-child(7)::before { content: "sist"; color: var(--dim); font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: .5px; }
-      .table-grid.table-row > *:nth-child(3),
-      .table-grid.table-row > *:nth-child(4),
-      .table-grid.table-row > *:nth-child(5),
-      .table-grid.table-row > *:nth-child(7) {
-        grid-area: auto; /* let them flow */
-      }
-      .table-grid.table-row { grid-template-areas: "asn name spark" "upd wd hi" "sist sist sist"; }
-      .table-grid.table-row > *:nth-child(3) { grid-area: upd; }
-      .table-grid.table-row > *:nth-child(4) { grid-area: wd; }
-      .table-grid.table-row > *:nth-child(5) { grid-area: hi; }
-      .table-grid.table-row > *:nth-child(7) { grid-area: sist; justify-content: flex-start; }
-      /* Log view → stacked card per row */
-      .log-header { display: none; }
-      .log-grid.log-row {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        grid-template-areas: "type prefix time" "path path path" "peer peer peer";
-        gap: 4px 10px; padding: 12px 18px;
-      }
-      .log-row > *:nth-child(1) { grid-area: time; text-align: right !important; font-size: 11px !important; }
-      .log-row > *:nth-child(2) { grid-area: type; }
-      .log-row > *:nth-child(3) { grid-area: prefix; min-width: 0 !important; flex-wrap: wrap; }
-      .log-row > *:nth-child(4) { grid-area: path; font-size: 10.5px !important; white-space: normal !important; }
-      .log-row > *:nth-child(5) { grid-area: peer; text-align: left !important; }
-      .log-row > *:nth-child(5)::before { content: "peer "; color: var(--dim); }
-    }
-    @media (max-width: 640px) {
-      .table-grid { grid-template-columns: 80px 1.6fr 1fr 1fr 1fr; }
-      .table-grid.table-header > *:nth-child(6), .table-grid.table-header > *:nth-child(7) { display: none; }
-    }
-    .skip-link {
-      position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
-    }
-    .skip-link:focus {
-      position: fixed; top: 8px; left: 8px; width: auto; height: auto;
-      padding: 8px 16px; background: var(--bg); color: var(--text);
-      border: 2px solid var(--accent); border-radius: 6px;
-      font-size: 13px; font-weight: 600; z-index: 9999;
-    }
-    .sr-only {
-      position: absolute; width: 1px; height: 1px; padding: 0;
-      margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
-      white-space: nowrap; border: 0;
-    }
-    #loading-overlay {
-      position: fixed; inset: 0; background: var(--bg);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000; transition: opacity .3s ease;
-    }
+    .skip-link { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+    .skip-link:focus { position: fixed; top: 8px; left: 8px; width: auto; height: auto; padding: 8px 16px; background: var(--bg); color: var(--text); border: 2px solid var(--accent); border-radius: 6px; font-size: 13px; font-weight: 600; z-index: 9999; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    #loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 1000; transition: opacity .3s ease; }
     #loading-overlay.hidden { opacity: 0; pointer-events: none; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner {
-      width: 28px; height: 28px; border-radius: 50%;
-      border: 2px solid var(--border); border-top-color: var(--accent);
-      animation: spin .8s linear infinite;
+    .spinner { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+
+    @media (max-width: 1099px) { .nav-links { gap: 14px; } .nav-link { font-size: 12.5px; } #nav-clock { display: none !important; } }
+    @media (max-width: 959px) { .nav-links { display: none; } .hamburger-btn { display: flex; } }
+    @media (max-width: 960px) {
+      .hero { padding: 28px 20px 20px; }
+      .hero-h1 { font-size: 26px; letter-spacing: -.6px; }
+      .section { padding: 0 20px; }
+      .hero-stats { gap: 24px; }
+      .asn-grid { grid-template-columns: repeat(2, 1fr); }
+      .sig-row { grid-template-columns: 80px 120px 1fr; }
+      .sig-row > *:nth-child(4) { display: none; }
     }
+    @media (max-width: 600px) { .asn-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px) { .asn-grid { grid-template-columns: 1fr; } .hero-h1 { font-size: 22px; } .hero-stats { display: grid; grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 700px) { .nav-right .status-indicator { display: none; } }
   </style>
   <script defer src="https://umami.nettradar.no/script.js" data-website-id="1c7c3c7e-4456-4d21-8837-d4dab429f5ab"></script>
 </head>
@@ -359,13 +260,14 @@
   </a>
   <div class="nav-links">
     <a href="/" class="nav-link">Dashboard</a>
+    <a href="/ddos" class="nav-link">DDoS</a>
     <a href="/bgp" class="nav-link active">BGP-aktivitet</a>
-    <a href="/topologi" class="nav-link">Topologi</a>
+    <a href="/tilgjengelighet" class="nav-link">Tilgjengelighet</a>
     <a href="/om" class="nav-link">Om Nettradar</a>
   </div>
   <span style="flex:1"></span>
   <div class="nav-right">
-    <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE RIS live</span></span>
+    <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE RIS</span></span>
     <span id="nav-clock">--:--:--</span>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Bytt til lys modus">
       <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="3.2"/><line x1="8" y1="1" x2="8" y2="2.5"/><line x1="8" y1="13.5" x2="8" y2="15"/><line x1="1" y1="8" x2="2.5" y2="8"/><line x1="13.5" y1="8" x2="15" y2="8"/><line x1="3.34" y1="3.34" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="12.66" y2="12.66"/><line x1="3.34" y1="12.66" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="12.66" y2="3.34"/></svg>
@@ -378,100 +280,111 @@
   </div>
   <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigasjonsmeny">
     <a href="/" class="drawer-link">Dashboard</a>
+    <a href="/ddos" class="drawer-link">DDoS</a>
     <a href="/bgp" class="drawer-link active">BGP-aktivitet</a>
-    <a href="/topologi" class="drawer-link">Topologi</a>
+    <a href="/tilgjengelighet" class="drawer-link">Tilgjengelighet</a>
     <a href="/om" class="drawer-link">Om Nettradar</a>
   </div>
 </nav>
 
 <!-- MAIN -->
 <main id="main-content">
+
 <!-- HERO -->
 <div class="hero">
   <div class="hero-kicker">BGP-aktivitet</div>
   <h1 class="hero-h1">
     <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums" id="stat-epm">—</span>
-     hendelser per minutt fra norske nettverk.
+    BGP-meldinger per minutt fra
+    <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums" id="stat-asn-count">—</span>
+    norske ASN-er.<span style="color:var(--dim);font-weight:400"> Flagget:
+    <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums" id="stat-flagged-count">0</span>
+    ASN siste 24 t.</span>
   </h1>
   <div class="hero-stats">
-    <div>
-      <div class="bgp-stat-label">ASN-er observert</div>
-      <div class="bgp-stat-num" id="stat-asns-obs">—</div>
-      <div class="bgp-stat-sub">av 13 overvåket</div>
+    <div class="stat-block">
+      <div class="stat-label">Annons / min</div>
+      <div class="stat-num" id="stat-ann-rate">—</div>
     </div>
-    <div>
-      <div class="bgp-stat-label">Annonseringer</div>
-      <div class="bgp-stat-num" id="stat-updates">0</div>
-      <div class="bgp-stat-sub">siden oppstart</div>
+    <div class="stat-block">
+      <div class="stat-label">Tilbaketrekk / min</div>
+      <div class="stat-num" id="stat-wd-rate">—</div>
     </div>
-    <div>
-      <div class="bgp-stat-label">Tilbaketrekk</div>
-      <div class="bgp-stat-num" id="stat-withdraws">0</div>
-      <div class="bgp-stat-sub">siden oppstart</div>
+    <div class="stat-block">
+      <div class="stat-label">Hijacks 24 t</div>
+      <div class="stat-num" id="stat-hijacks-24" style="color:var(--dimmer)">—</div>
     </div>
-    <div>
-      <div class="bgp-stat-label">Hijacks</div>
-      <div class="bgp-stat-num" id="stat-hijacks" style="color:var(--dimmer)">0</div>
-      <div class="bgp-stat-sub">siden oppstart</div>
+    <div class="stat-block">
+      <div class="stat-label">Route leaks 24 t</div>
+      <div class="stat-num" id="stat-leaks-24" style="color:var(--dimmer)">—</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Prefikser overvåket</div>
+      <div class="stat-num" id="stat-prefixes">—</div>
     </div>
   </div>
 </div>
 
-<!-- CONTENT -->
-<div class="content-area">
-  <!-- TAB BAR -->
-  <div class="tab-bar">
-    <div class="view-toggle" role="tablist" aria-label="BGP-visning">
-      <button class="toggle-btn active" id="btn-summary"
-              role="tab" aria-selected="true" aria-controls="view-summary"
-              onclick="setView('summary')">Sammendrag</button>
-      <button class="toggle-btn" id="btn-log"
-              role="tab" aria-selected="false" aria-controls="view-log"
-              onclick="setView('log')">
-        Logg <span class="toggle-count" id="log-count" style="display:none">0</span>
-      </button>
-    </div>
+<!-- PER ASN -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">Per ASN</span>
+    <span class="section-sub">BGP-aktivitet per ASN</span>
     <span style="flex:1"></span>
-    <span id="tab-info-summary" class="tab-bar-right">oppdateres hvert 30. s</span>
-    <span id="tab-info-log" class="tab-bar-right" style="display:none;color:var(--green)">
-      <span class="stream-dot"></span>strømmer fra RIPE RIS
+    <span style="font-size:11px;color:var(--dim);display:inline-flex;align-items:center;gap:5px">
+      <span style="width:8px;height:8px;border-radius:4px;background:var(--red);flex-shrink:0"></span>
+      Flagget
     </span>
   </div>
-
-  <!-- SUMMARY VIEW -->
-  <div id="view-summary" class="table-card">
-    <div class="table-grid table-header">
-      <span>ASN</span>
-      <span>Operatør</span>
-      <span class="sort-col active" id="sort-updates" role="button" tabindex="0"
-            onclick="sortBy('updates')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sortBy('updates')}"
-            style="color:var(--blue)">
-        <span class="sort-dot" style="background:var(--blue)"></span>Update <span style="font-size:9px">↓</span>
-      </span>
-      <span class="sort-col" id="sort-withdraws" role="button" tabindex="0"
-            onclick="sortBy('withdraws')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sortBy('withdraws')}">Withdraw</span>
-      <span class="sort-col" id="sort-hijacks" role="button" tabindex="0"
-            onclick="sortBy('hijacks')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sortBy('hijacks')}">Hijack</span>
-      <span>Aktivitet</span>
-      <span style="text-align:right">Sist sett</span>
-    </div>
-    <div class="table-body" id="summary-body" tabindex="0" role="region" aria-label="BGP-sammendrag">
-      <div style="padding:14px 22px;color:var(--dim);font-size:13px">Kobler til…</div>
-    </div>
+  <div class="asn-grid" id="asn-grid">
+    <div style="grid-column:1/-1;padding:16px 0;color:var(--dim);font-size:13px">Kobler til…</div>
   </div>
+  <p class="asn-grid-footer">Stille ASN-er har ikke sendt BGP UPDATE/WITHDRAW i denne sesjonen. Dette er normalt for stabile nett — BGP sender bare meldinger når noe endrer seg.</p>
+</div>
 
-  <!-- LOG VIEW -->
-  <div id="view-log" class="table-card" style="display:none">
-    <div class="log-grid log-header">
-      <span>Tid</span>
-      <span>Type</span>
-      <span>Prefiks / opprinnelse</span>
-      <span>AS-sti</span>
-      <span style="text-align:right">Peer</span>
+<!-- FLAGGED EVENTS -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">Hendelser flagget siste 24 t</span>
+    <span class="section-sub">siste 24 t</span>
+    <span style="flex:1"></span>
+    <span id="sig-count" style="font-size:11px;color:var(--dim)">—</span>
+  </div>
+  <div class="sig-card" id="sig-table">
+    <div class="sig-empty">Kobler til…</div>
+  </div>
+</div>
+
+<!-- RAW STREAM -->
+<div class="section" style="margin-bottom:40px">
+  <details id="raw-details">
+    <summary class="raw-summary">
+      <span style="font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim)">Avansert</span>
+      <span style="flex:1;color:var(--dim);font-size:12.5px">Vis BGP-strøm</span>
+      <span id="raw-stream-status" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">alle annonseringer og tilbaketrekk · for teknisk publikum</span>
+      <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="margin-left:8px;color:var(--dimmer);transition:transform .2s" id="raw-chevron"><path d="M1 1l4 4 4-4"/></svg>
+    </summary>
+    <div class="raw-log-wrap">
+      <div class="log-grid log-header">
+        <span>Tid</span>
+        <span>Type</span>
+        <span>Prefiks / opprinnelse</span>
+        <span>AS-sti</span>
+        <span style="text-align:right">Peer</span>
+      </div>
+      <div id="log-body">
+        <div style="padding:14px 22px;color:var(--dim);font-size:13px">Venter på hendelser…</div>
+      </div>
     </div>
-    <div class="table-body" id="log-body" tabindex="0" role="region" aria-label="BGP-hendelseslogg">
-      <div style="padding:14px 22px;color:var(--dim);font-size:13px">Kobler til strøm…</div>
-    </div>
+  </details>
+</div>
+
+<!-- SOURCE FOOTER -->
+<div class="source-footer">
+  <div class="source-footer-label">Kilder</div>
+  <div class="source-footer-items">
+    <div><strong>Cloudflare Radar</strong> — BGP-hijack-klassifisering og rutelekkasjer</div>
+    <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW) fra norske ASN-er</div>
   </div>
 </div>
 </main>
@@ -484,6 +397,14 @@ function toggleTheme() {
   localStorage.setItem('nt-theme', t);
   document.getElementById('theme-btn').setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus');
 }
+(function(){
+  const t = localStorage.getItem('nt-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus');
+})();
+
+// ── Nav ────────────────────────────────────────────────────────────────────
 function _navTrap(e) {
   const focusable = Array.from(document.getElementById('nav-drawer').querySelectorAll('a[href], button:not([disabled])'));
   const first = focusable[0], last = focusable[focusable.length - 1];
@@ -492,136 +413,241 @@ function _navTrap(e) {
   else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
 }
 function openNav() {
-  const btn = document.getElementById('hamburger-btn');
-  const drawer = document.getElementById('nav-drawer');
-  drawer.classList.add('open');
-  btn.setAttribute('aria-expanded', 'true');
-  btn.setAttribute('aria-label', 'Lukk meny');
+  const btn = document.getElementById('hamburger-btn'), drawer = document.getElementById('nav-drawer');
+  drawer.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Lukk meny');
   drawer.addEventListener('keydown', _navTrap);
   requestAnimationFrame(() => { const f = drawer.querySelector('a[href]'); if (f) f.focus(); });
 }
 function closeNav() {
-  const btn = document.getElementById('hamburger-btn');
-  const drawer = document.getElementById('nav-drawer');
+  const btn = document.getElementById('hamburger-btn'), drawer = document.getElementById('nav-drawer');
   if (!drawer.classList.contains('open')) return;
-  drawer.classList.remove('open');
-  drawer.removeEventListener('keydown', _navTrap);
-  btn.setAttribute('aria-expanded', 'false');
-  btn.setAttribute('aria-label', 'Åpne meny');
-  btn.focus();
+  drawer.classList.remove('open'); drawer.removeEventListener('keydown', _navTrap);
+  btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-label', 'Åpne meny'); btn.focus();
 }
-function toggleNav() {
-  if (document.getElementById('nav-drawer').classList.contains('open')) closeNav(); else openNav();
-}
+function toggleNav() { if (document.getElementById('nav-drawer').classList.contains('open')) closeNav(); else openNav(); }
 document.querySelectorAll('.drawer-link').forEach(a => a.addEventListener('click', closeNav));
-document.addEventListener('click', function(e) { if (!document.querySelector('nav.nav').contains(e.target)) closeNav(); });
-document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeNav(); });
-(function(){
-  const t = localStorage.getItem('nt-theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-  const btn = document.getElementById('theme-btn');
-  if (btn) btn.setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus');
-})();
+document.addEventListener('click', e => { if (!document.querySelector('nav.nav').contains(e.target)) closeNav(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
 
+// ── Clock ──────────────────────────────────────────────────────────────────
 function updateClock() {
-  const fmt = window.innerWidth > 480
-    ? {hour:'2-digit',minute:'2-digit',second:'2-digit'}
-    : {hour:'2-digit',minute:'2-digit'};
-  document.getElementById('nav-clock').textContent =
-    new Date().toLocaleTimeString('nb-NO', fmt);
+  const fmt = window.innerWidth > 480 ? {hour:'2-digit',minute:'2-digit',second:'2-digit'} : {hour:'2-digit',minute:'2-digit'};
+  document.getElementById('nav-clock').textContent = new Date().toLocaleTimeString('nb-NO', fmt);
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(updateClock, 1000); updateClock();
+
+// ── Details chevron ────────────────────────────────────────────────────────
+document.getElementById('raw-details').addEventListener('toggle', function() {
+  const ch = document.getElementById('raw-chevron');
+  ch.style.transform = this.open ? 'rotate(180deg)' : '';
+  if (this.open) renderLog();
+});
 
 // ── State ──────────────────────────────────────────────────────────────────
+const SESSION_START = Date.now();
 let noAsns = {};
-let currentView = 'summary';
-let currentSort = 'updates';
-let asnStats = {}; // asn -> {name, updates, withdraws, hijacks, lastSeen, sparkData}
+let radarData = {};
+let asnStats = {};
 let logEvents = [];
-let totalUpdates = 0, totalWithdraws = 0, totalHijacks = 0;
-let unseenLog = 0;
+let sparkBuckets = {};
 
-// ── View toggle ────────────────────────────────────────────────────────────
-function bumpLogCount() {
-  unseenLog++;
-  const el = document.getElementById('log-count');
-  el.textContent = unseenLog > 99 ? '99+' : String(unseenLog);
-  el.style.display = '';
+function sessionMinutes() { return Math.max(1/60, (Date.now() - SESSION_START) / 60000); }
+
+function rateStr(n) {
+  const r = n / sessionMinutes();
+  if (r < 0.05) return '0';
+  if (r < 10) return r.toFixed(1);
+  return Math.round(r).toLocaleString('nb-NO');
 }
 
-function setView(v) {
-  currentView = v;
-  document.getElementById('view-summary').style.display = v === 'summary' ? 'flex' : 'none';
-  document.getElementById('view-log').style.display = v === 'log' ? 'flex' : 'none';
-  const sum = document.getElementById('btn-summary');
-  const log = document.getElementById('btn-log');
-  sum.classList.toggle('active', v === 'summary');
-  log.classList.toggle('active', v === 'log');
-  sum.setAttribute('aria-selected', String(v === 'summary'));
-  log.setAttribute('aria-selected', String(v === 'log'));
-  document.getElementById('tab-info-summary').style.display = v === 'summary' ? '' : 'none';
-  document.getElementById('tab-info-log').style.display = v === 'log' ? 'inline-flex' : 'none';
-  const countEl = document.getElementById('log-count');
-  if (v === 'log') {
-    unseenLog = 0;
-    countEl.style.display = 'none';
-  } else {
-    if (unseenLog > 0) countEl.style.display = '';
-  }
+function timeAgo(ms) {
+  const diff = Date.now() - ms;
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return `${sec} s siden`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min} min siden`;
+  const h = Math.floor(min / 60);
+  return `${h} t ${min % 60} min siden`;
 }
 
-// ── Sort ───────────────────────────────────────────────────────────────────
-function sortBy(col) {
-  currentSort = col;
-  const cols = ['updates','withdraws','hijacks'];
-  const colors = {updates:'var(--blue)', withdraws:'var(--amber)', hijacks:'var(--red)'};
-  cols.forEach(c => {
-    const el = document.getElementById('sort-' + c);
-    if (c === col) {
-      el.className = 'sort-col active';
-      el.style.color = colors[c];
-      el.innerHTML = `<span class="sort-dot" style="background:${colors[c]}"></span>${c.charAt(0).toUpperCase()+c.slice(1)} <span style="font-size:9px">↓</span>`;
-    } else {
-      el.className = 'sort-col';
-      el.style.color = '';
-      el.textContent = c.charAt(0).toUpperCase() + c.slice(1);
-    }
+// ── localStorage cache ─────────────────────────────────────────────────────
+window.addEventListener('beforeunload', () => {
+  try {
+    localStorage.setItem('nt-bgp-events', JSON.stringify({ ts: Date.now(), events: logEvents.slice(0, 200) }));
+  } catch(_) {}
+});
+
+function restoreFromCache() {
+  try {
+    const raw = localStorage.getItem('nt-bgp-events');
+    if (!raw) return;
+    const { ts: cacheTs, events } = JSON.parse(raw);
+    if (!events || Date.now() - cacheTs > 15 * 60 * 1000) return;
+    const now = Date.now();
+    const sparkSpan = 60 * 1000;
+    const bucketMs = sparkSpan / 30;
+    events.forEach(e => {
+      const eventMs = (e.timestamp || 0) * 1000;
+      const asns = e.matched_no_asns || [];
+      asns.forEach(asn => {
+        if (!asnStats[asn]) asnStats[asn] = {
+          asn, name: e.asn_name || `AS${asn}`,
+          updates: 0, withdraws: 0, hijacks: 0,
+          lastSeen: null, sparkData: new Array(30).fill(0), prefixes: new Set(),
+        };
+        const s = asnStats[asn];
+        if (e.prefix) s.prefixes.add(e.prefix);
+        if (eventMs > (s.lastSeen || 0)) s.lastSeen = eventMs;
+        const age = now - eventMs;
+        if (age >= 0 && age < sparkSpan) {
+          const idx = Math.min(29, Math.floor((sparkSpan - age) / bucketMs));
+          s.sparkData[idx]++;
+        }
+      });
+    });
+    renderAsnGrid();
+  } catch(_) {}
+}
+
+// ── Sparkline ticker (2s buckets → 60s window) ─────────────────────────────
+setInterval(() => {
+  let changed = false;
+  Object.keys(asnStats).forEach(asn => {
+    const s = asnStats[asn];
+    s.sparkData.push(sparkBuckets[asn] || 0);
+    if (s.sparkData.length > 30) s.sparkData.shift();
+    sparkBuckets[asn] = 0;
+    changed = true;
   });
-  renderSummary();
+  if (changed) renderAsnGrid();
+}, 2000);
+
+// ── Sparkline SVG ──────────────────────────────────────────────────────────
+function sparkSvg(data, color) {
+  const w = 240, h = 32;
+  if (!data.some(v => v > 0)) {
+    return `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block"><line x1="0" y1="${h-1}" x2="${w}" y2="${h-1}" stroke="${color}" stroke-opacity=".2" stroke-width="1"/></svg>`;
+  }
+  const max = Math.max(...data, 1);
+  const pts = data.map((v, i) => [(i / (data.length - 1)) * w, h - 2 - (v / max) * (h - 4)]);
+  const line = pts.map(([x,y],i) => `${i===0?'M':'L'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+  const area = line + ` L${w},${h} L0,${h} Z`;
+  return `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block"><path d="${area}" fill="${color}" opacity=".12"/><path d="${line}" fill="none" stroke="${color}" stroke-width="1.2" opacity=".85"/></svg>`;
 }
 
-// ── Sparkline ──────────────────────────────────────────────────────────────
-function spark(data, color) {
-  const max = Math.max(...data, 0.1);
-  const w = 80, h = 18;
-  const pts = data.map((v,i) => [(i/(data.length-1))*w, h-1-(v/max)*(h-2)]);
-  const d = pts.map(([x,y],i) => `${i===0?'M':'L'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
-  return `<svg width="${w}" height="${h}" style="display:block"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.2" opacity=".85"/></svg>`;
+// ── Render ASN grid ────────────────────────────────────────────────────────
+function getFlaggedMap() {
+  const flagged = {};
+  (radarData.hijack_alerts || []).forEach(h => {
+    if (!flagged[h.victim_asn]) flagged[h.victim_asn] = [];
+    flagged[h.victim_asn].push({ type: 'HIJACK', source: 'Cloudflare', detail: `AS${h.hijacker_asn} annonserer ${h.prefix}` });
+  });
+  (radarData.route_leaks || []).forEach(l => {
+    if (!flagged[l.origin_asn]) flagged[l.origin_asn] = [];
+    flagged[l.origin_asn].push({ type: 'ROUTE LEAK', source: 'Cloudflare', detail: `Leak via AS${l.peer_asn} · ${l.prefix}` });
+  });
+  return flagged;
 }
 
-// ── Render summary ─────────────────────────────────────────────────────────
-function renderSummary() {
-  const body = document.getElementById('summary-body');
-  const rows = Object.values(asnStats).sort((a,b) => b[currentSort] - a[currentSort]);
-  if (!rows.length) {
-    body.innerHTML = '<div style="padding:14px 22px;color:var(--dim);font-size:13px">Ingen data ennå…</div>';
+function renderAsnGrid() {
+  const grid = document.getElementById('asn-grid');
+  const asnList = Object.keys(noAsns);
+  if (!asnList.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:16px 0;color:var(--dim);font-size:13px">Kobler til…</div>';
     return;
   }
-  body.innerHTML = rows.map(r => {
-    const ago = r.lastSeen ? Math.floor((Date.now() - r.lastSeen) / 1000) : null;
-    const agoStr = ago === null ? '—' : ago < 60 ? `${ago}s` : `${Math.floor(ago/60)}m ${ago%60}s`;
-    const sparkColor = r.hijacks > 0 ? 'var(--red)' : 'var(--blue)';
-    const sparkSvg = spark(r.sparkData || new Array(24).fill(0), sparkColor);
+  const flagMap = getFlaggedMap();
+  const flagCount = Object.keys(flagMap).filter(asn => noAsns[parseInt(asn)]).length;
+  const flagEl = document.getElementById('stat-flagged-count');
+  if (flagEl) { flagEl.textContent = flagCount; flagEl.style.color = flagCount > 0 ? 'var(--red)' : 'var(--dimmer)'; }
+
+  const sorted = asnList
+    .map(asnStr => {
+      const asn = parseInt(asnStr);
+      const s = asnStats[asn] || { updates: 0, withdraws: 0, hijacks: 0 };
+      const isFlagged = !!flagMap[asn];
+      return { asn, isFlagged, activity: s.updates + s.withdraws + s.hijacks };
+    })
+    .sort((a, b) => {
+      if (a.isFlagged !== b.isFlagged) return a.isFlagged ? -1 : 1;
+      return b.activity - a.activity;
+    })
+    .slice(0, 60);
+
+  grid.innerHTML = sorted.map(({ asn }) => {
+    const name = noAsns[asn] || `AS${asn}`;
+    const s = asnStats[asn] || { updates: 0, withdraws: 0, hijacks: 0, sparkData: new Array(30).fill(0), prefixes: new Set(), lastSeen: null };
+    const flags = flagMap[asn];
+    const isFlagged = !!flags;
+    const isSilent = !isFlagged && s.updates === 0 && s.withdraws === 0;
+    const sparkColor = isFlagged ? 'var(--red)' : 'var(--blue)';
+    const prefixCount = s.prefixes ? s.prefixes.size : 0;
+    const stableSub = s.lastSeen ? `Siste UPDATE: ${timeAgo(s.lastSeen)}` : 'Ingen endringer denne sesjonen';
     return `
-      <div class="table-grid table-row${r.hijacks > 0 ? ' hijack-row' : ''}">
-        <span style="font-family:'JetBrains Mono',monospace;color:var(--dim);font-size:12px">AS${r.asn}</span>
-        <span style="font-weight:500">${r.name}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:var(--blue);font-weight:${r.updates>1000?'600':'400'}">${r.updates.toLocaleString('nb-NO')}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:${r.withdraws>0?'var(--amber)':'var(--dimmer)'};font-weight:${r.withdraws>10?'600':'400'}">${r.withdraws}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:${r.hijacks>0?'var(--red)':'var(--dimmer)'};font-weight:${r.hijacks>0?'700':'400'}">${r.hijacks > 0 ? '⚠ ' + r.hijacks : '0'}</span>
-        <span>${sparkSvg}</span>
-        <span style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums">${agoStr}</span>
+      <div class="asn-card${isSilent ? ' asn-silent' : ''}">
+        ${isFlagged ? '<div class="asn-stripe"></div>' : ''}
+        <div class="asn-card-top">
+          <span class="asn-num">AS${asn}</span>
+          <span style="flex:1"></span>
+          ${isFlagged ? flags.map(f => `<span class="flag-badge">⚠ ${f.type}</span>`).join('') : ''}
+        </div>
+        <div class="asn-name">${name}</div>
+        ${sparkSvg(s.sparkData || new Array(30).fill(0), sparkColor)}
+        ${isSilent ? `
+          <div class="asn-stable">
+            <span class="stable-label">STABIL</span>
+            <span class="stable-sub">${stableSub}</span>
+          </div>
+        ` : `
+          <div class="asn-metrics">
+            <div><div class="m-label">Annons</div><div class="m-val">${s.updates.toLocaleString('nb-NO')}</div></div>
+            <div><div class="m-label">Withdraw</div><div class="m-val" style="${s.withdraws>0?'color:var(--amber)':''}">${s.withdraws.toLocaleString('nb-NO')}</div></div>
+            <div><div class="m-label">Prefikser</div><div class="m-val">${prefixCount > 0 ? prefixCount.toLocaleString('nb-NO') : '—'}</div></div>
+          </div>
+        `}
+        ${isFlagged ? `<div class="flag-detail">${flags.map(f => `<div><strong>${f.source}:</strong> ${f.detail}</div>`).join('')}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// ── Render significant events ──────────────────────────────────────────────
+function renderSignificant() {
+  const table = document.getElementById('sig-table');
+  const countEl = document.getElementById('sig-count');
+
+  const hijacks = (radarData.hijack_alerts || []).map(h => ({
+    ts: h.detected_at, severity: 'high', label: '⚠ HIJACK', source: 'Cloudflare',
+    headline: `AS${h.hijacker_asn} annonserer ${noAsns[h.victim_asn] ? noAsns[h.victim_asn] + '-prefiks' : 'norsk prefiks'}`,
+    detail: `${h.prefix} · normalt AS${h.victim_asn}`,
+  }));
+  const leaks = (radarData.route_leaks || []).map(l => ({
+    ts: l.detected_at, severity: 'medium', label: 'ROUTE LEAK', source: 'Cloudflare',
+    headline: `Rutelekkasje via AS${l.leak_asn}`,
+    detail: `${l.prefix} · opprinnelse AS${l.origin_asn}`,
+  }));
+  const rows = [...hijacks, ...leaks].sort((a,b) => new Date(b.ts) - new Date(a.ts));
+
+  if (countEl) countEl.textContent = `${rows.length} flagget`;
+
+  if (!rows.length) {
+    table.innerHTML = '<div class="sig-empty">Ingen flaggede hendelser siste 24 t</div>';
+    return;
+  }
+  table.innerHTML = rows.map(e => {
+    const c = e.severity === 'high' ? 'var(--red)' : e.severity === 'medium' ? 'var(--amber)' : 'var(--blue)';
+    const cbg = e.severity === 'high' ? 'rgba(255,107,91,.14)' : e.severity === 'medium' ? 'rgba(245,185,66,.14)' : 'rgba(124,182,255,.14)';
+    const tStr = e.ts ? new Date(e.ts).toLocaleTimeString('nb-NO', {hour:'2-digit',minute:'2-digit'}) : '—';
+    const minSince = e.ts ? Math.floor((Date.now() - new Date(e.ts).getTime()) / 60000) : 0;
+    const ago = minSince < 60 ? `${minSince} min siden` : `${Math.floor(minSince/60)} t ${minSince%60} m siden`;
+    return `
+      <div class="sig-row${e.severity === 'high' ? ' high' : ''}">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--dim)">${tStr}</span>
+        <span style="font-size:10px;font-weight:700;letter-spacing:1.2px;color:${c};padding:3px 8px;background:${cbg};border-radius:3px;justify-self:start">${e.label}</span>
+        <span>
+          <div style="font-weight:500">${e.headline}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--dim);margin-top:2px">${e.detail}</div>
+        </span>
+        <span style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--dim)">${ago}</span>
       </div>`;
   }).join('');
 }
@@ -633,9 +659,8 @@ function renderLog() {
     body.innerHTML = '<div style="padding:14px 22px;color:var(--dim);font-size:13px">Venter på hendelser…</div>';
     return;
   }
-  body.innerHTML = logEvents.slice(0, 150).map(e => {
-    const isH = e.event_type === 'hijack';
-    const isW = e.event_type === 'withdrawal';
+  body.innerHTML = logEvents.slice(0, 300).map(e => {
+    const isH = e.event_type === 'hijack', isW = e.event_type === 'withdrawal';
     const c = isH ? 'var(--red)' : isW ? 'var(--amber)' : 'var(--blue)';
     const cbg = isH ? 'rgba(255,107,91,.14)' : isW ? 'rgba(245,185,66,.14)' : 'rgba(124,182,255,.14)';
     const tag = isH ? '⚠ HIJACK' : isW ? 'WITHDRAW' : 'UPDATE';
@@ -658,105 +683,121 @@ function renderLog() {
   }).join('');
 }
 
-function hideOverlay() {
+function updateRawStatus() {
+  const el = document.getElementById('raw-stream-status');
+  if (logEvents.length > 0) {
+    el.innerHTML = `<span class="stream-dot" style="margin-right:5px"></span>${logEvents.length} hendelser bufret`;
+  }
+}
+
+// ── Process event ──────────────────────────────────────────────────────────
+function processEvent(e, addToLog = true) {
+  if (addToLog) {
+    logEvents.unshift(e);
+    if (logEvents.length > 500) logEvents.pop();
+    if (document.getElementById('raw-details').open) renderLog();
+    updateRawStatus();
+  }
+  (e.matched_no_asns || []).forEach(asn => {
+    if (!asnStats[asn]) asnStats[asn] = {
+      asn, name: noAsns[asn] || e.asn_name || `AS${asn}`,
+      updates: 0, withdraws: 0, hijacks: 0,
+      lastSeen: null, sparkData: new Array(30).fill(0), prefixes: new Set(),
+    };
+    const s = asnStats[asn];
+    if (noAsns[asn]) s.name = noAsns[asn];
+    if (e.event_type === 'announcement') s.updates++;
+    else if (e.event_type === 'withdrawal') s.withdraws++;
+    else if (e.event_type === 'hijack') s.hijacks++;
+    s.lastSeen = Date.now();
+    if (e.prefix) s.prefixes.add(e.prefix);
+    sparkBuckets[asn] = (sparkBuckets[asn] || 0) + 1;
+  });
+}
+
+// ── Update hero rate stats ─────────────────────────────────────────────────
+function updateRateStats() {
+  const totalAnn = Object.values(asnStats).reduce((s,r) => s + r.updates, 0);
+  const totalWd  = Object.values(asnStats).reduce((s,r) => s + r.withdraws, 0);
+  const annEl = document.getElementById('stat-ann-rate');
+  const wdEl  = document.getElementById('stat-wd-rate');
+  if (annEl) annEl.textContent = rateStr(totalAnn);
+  if (wdEl)  wdEl.textContent  = rateStr(totalWd);
+}
+
+// ── Apply snapshot ─────────────────────────────────────────────────────────
+function applySnapshot(data) {
   const overlay = document.getElementById('loading-overlay');
   if (overlay) {
     const delay = Math.max(0, 500 - (Date.now() - _overlayShownAt));
     setTimeout(() => { overlay.classList.add('hidden'); setTimeout(() => overlay.remove(), 300); }, delay);
   }
-}
 
-// ── Apply snapshot ─────────────────────────────────────────────────────────
-function applySnapshot(data) {
-  hideOverlay();
   noAsns = {};
   Object.entries(data.no_asns || {}).forEach(([k,v]) => { noAsns[parseInt(k)] = v; });
+  // Update names for any cache-seeded stats
+  Object.keys(asnStats).forEach(asn => { if (noAsns[parseInt(asn)]) asnStats[parseInt(asn)].name = noAsns[parseInt(asn)]; });
 
-  document.getElementById('stat-epm').textContent = data.events_per_minute || 0;
+  radarData = data.radar || {};
 
-  // Seed asnStats from snapshot events
-  (data.events || []).forEach(e => processEvent(e, false));
-  updateStatsDisplay();
-  renderSummary();
-  renderLog();
+  document.getElementById('stat-epm').textContent = (data.events_per_minute || 0).toLocaleString('nb-NO');
+  document.getElementById('stat-asn-count').textContent = Object.keys(noAsns).length;
+  document.getElementById('stat-prefixes').textContent = (data.no_prefix_count || 0).toLocaleString('nb-NO');
+
+  const hijackCount = (radarData.hijack_alerts || []).length;
+  const leakCount = (radarData.route_leaks || []).length;
+  const hEl = document.getElementById('stat-hijacks-24');
+  if (hEl) { hEl.textContent = hijackCount; hEl.style.color = hijackCount > 0 ? 'var(--red)' : 'var(--dimmer)'; }
+  const lEl = document.getElementById('stat-leaks-24');
+  if (lEl) { lEl.textContent = leakCount; lEl.style.color = leakCount > 0 ? 'var(--amber)' : 'var(--dimmer)'; }
+
+  // Seed from snapshot event buffer (oldest→newest, addToLog=false to avoid re-rendering log on each)
+  const snapshotEvents = (data.events || []).slice().reverse();
+  snapshotEvents.forEach(e => processEvent(e, false));
+  // Merge with log: server snapshot is canonical, cached events appended if newer
+  logEvents = snapshotEvents.concat(logEvents.filter(le => le.timestamp > (snapshotEvents[0]?.timestamp || 0))).slice(0, 500);
+  if (document.getElementById('raw-details').open) renderLog();
+  updateRawStatus();
+
+  updateRateStats();
+  renderAsnGrid();
+  renderSignificant();
 }
 
-function processEvent(e, addToLog = true) {
-  const asns = e.matched_no_asns || [];
-  if (!asns.length && e.as_path) {
-    // no matched asns - skip for stats
-    if (addToLog) { logEvents.unshift(e); if (logEvents.length > 150) logEvents.pop(); if (currentView === 'log') renderLog(); else bumpLogCount(); }
-    return;
-  }
-  asns.forEach(asn => {
-    if (!asnStats[asn]) {
-      asnStats[asn] = {
-        asn, name: noAsns[asn] || `AS${asn}`,
-        updates: 0, withdraws: 0, hijacks: 0,
-        lastSeen: null, sparkData: new Array(24).fill(0)
-      };
-    }
-    const s = asnStats[asn];
-    if (e.event_type === 'announcement') s.updates++;
-    else if (e.event_type === 'withdrawal') s.withdraws++;
-    else if (e.event_type === 'hijack') s.hijacks++;
-    s.lastSeen = Date.now();
-    // rolling sparkline (24 buckets)
-    s.sparkData.push(s.updates + s.withdraws + s.hijacks);
-    if (s.sparkData.length > 24) s.sparkData.shift();
-  });
-
-  if (addToLog) {
-    logEvents.unshift(e);
-    if (logEvents.length > 150) logEvents.pop();
-    if (currentView === 'log') renderLog();
-    else bumpLogCount();
-  }
-
-  totalUpdates = Object.values(asnStats).reduce((s,r) => s + r.updates, 0);
-  totalWithdraws = Object.values(asnStats).reduce((s,r) => s + r.withdraws, 0);
-  totalHijacks = Object.values(asnStats).reduce((s,r) => s + r.hijacks, 0);
-}
-
-function updateStatsDisplay() {
-  const obs = Object.keys(asnStats).length;
-  document.getElementById('stat-asns-obs').textContent = obs;
-  document.getElementById('stat-updates').textContent = totalUpdates.toLocaleString('nb-NO');
-  document.getElementById('stat-withdraws').textContent = totalWithdraws;
-  const hEl = document.getElementById('stat-hijacks');
-  hEl.textContent = totalHijacks;
-  hEl.style.color = totalHijacks > 0 ? 'var(--red)' : 'var(--dimmer)';
-}
-
-// Update summary every 30s
-setInterval(() => { if (currentView === 'summary') renderSummary(); updateStatsDisplay(); }, 30000);
+// ── Periodic refresh ───────────────────────────────────────────────────────
+setInterval(() => { updateRateStats(); renderSignificant(); }, 30000);
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   const ws = new WebSocket(`${proto}://${location.host}/ws`);
   ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
-  ws.onmessage = e => {
-    const msg = JSON.parse(e.data);
+  ws.onmessage = ev => {
+    const msg = JSON.parse(ev.data);
     if (msg.type === 'state_snapshot') {
       applySnapshot(msg.data);
     } else if (msg.type === 'bgp_event') {
-      // Update name from current noAsns
-      const ev = msg.data;
-      if (!ev.asn_name && ev.matched_no_asns && ev.matched_no_asns.length) {
-        ev.asn_name = noAsns[ev.matched_no_asns[0]] || null;
-      }
-      processEvent(ev, true);
-      updateStatsDisplay();
-      if (currentView === 'summary') renderSummary();
+      const e = msg.data;
+      if (!e.asn_name && e.matched_no_asns && e.matched_no_asns.length) e.asn_name = noAsns[e.matched_no_asns[0]] || null;
+      processEvent(e, true);
+      updateRateStats();
+    } else if (msg.type === 'radar_update') {
+      radarData = msg.data;
+      const hc = (radarData.hijack_alerts || []).length;
+      const lc = (radarData.route_leaks || []).length;
+      const hEl = document.getElementById('stat-hijacks-24');
+      if (hEl) { hEl.textContent = hc; hEl.style.color = hc > 0 ? 'var(--red)' : 'var(--dimmer)'; }
+      const lEl = document.getElementById('stat-leaks-24');
+      if (lEl) { lEl.textContent = lc; lEl.style.color = lc > 0 ? 'var(--amber)' : 'var(--dimmer)'; }
+      renderAsnGrid();
+      renderSignificant();
     }
   };
-  ws.onclose = () => {
-    document.getElementById('ripe-dot').classList.remove('live');
-    setTimeout(connect, 3000);
-  };
+  ws.onclose = () => { document.getElementById('ripe-dot').classList.remove('live'); setTimeout(connect, 3000); };
   ws.onerror = () => ws.close();
 }
+
+restoreFromCache();
 connect();
 </script>
 </body>

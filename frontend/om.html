@@ -70,7 +70,6 @@
     [data-theme="dark"]  .theme-icon-sun  { display: block; }
     [data-theme="light"] .theme-icon-moon { display: block; }
     /* HAMBURGER + DRAWER */
-    .nav { position: relative; }
     .hamburger-btn {
       display: none; align-items: center; justify-content: center;
       width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border);
@@ -269,8 +268,9 @@
   </a>
   <div class="nav-links">
     <a href="/" class="nav-link">Dashboard</a>
+    <a href="/ddos" class="nav-link">DDoS</a>
     <a href="/bgp" class="nav-link">BGP-aktivitet</a>
-    <a href="/topologi" class="nav-link">Topologi</a>
+    <a href="/tilgjengelighet" class="nav-link">Tilgjengelighet</a>
     <a href="/om" class="nav-link active">Om Nettradar</a>
   </div>
   <span style="flex:1"></span>
@@ -288,8 +288,9 @@
   </div>
   <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigasjonsmeny">
     <a href="/" class="drawer-link">Dashboard</a>
+    <a href="/ddos" class="drawer-link">DDoS</a>
     <a href="/bgp" class="drawer-link">BGP-aktivitet</a>
-    <a href="/topologi" class="drawer-link">Topologi</a>
+    <a href="/tilgjengelighet" class="drawer-link">Tilgjengelighet</a>
     <a href="/om" class="drawer-link active">Om Nettradar</a>
   </div>
 </nav>
@@ -299,12 +300,11 @@
     <div class="left-nav-label">På denne siden</div>
     <div class="anchor-links">
       <a class="anchor-link active" href="#s1">Hva er Nettradar</a>
-      <a class="anchor-link" href="#s2">BGP-hendelser</a>
-      <a class="anchor-link" href="#s3">DDoS-angrep</a>
-      <a class="anchor-link" href="#s4">Dashboard-paneler</a>
-      <a class="anchor-link" href="#s5">BGP-aktivitet</a>
-      <a class="anchor-link" href="#s6">AS-Topologi</a>
-      <a class="anchor-link" href="#s7">Datakilder</a>
+      <a class="anchor-link" href="#s2">De fire sidene</a>
+      <a class="anchor-link" href="#s3">BGP-hendelser</a>
+      <a class="anchor-link" href="#s4">DDoS-angrep</a>
+      <a class="anchor-link" href="#s5">Nettavbrudd og trafikkavvik</a>
+      <a class="anchor-link" href="#s6">Datakilder</a>
     </div>
   </div>
 
@@ -316,8 +316,14 @@
         <h1 class="om-h1">Sanntids-radar for norsk internett.</h1>
         <p class="om-lead">
           Nettradar viser tilstanden til norsk internettinfrastruktur etter hvert som den endrer seg —
-          BGP-ruteendringer, DDoS-angrep og sikkerhetsvarsler.
-          Alt som vises er ekte, live data fra åpne kilder.
+          BGP-ruteendringer, DDoS-angrep, nettavbrudd og trafikkavvik. Alt som vises kommer fra åpne
+          kilder: RIPE RIS, Cloudflare Radar og PeeringDB.
+        </p>
+        <p class="om-lead" style="margin-top:14px;font-size:15px">
+          Nettradar gjør ingen egne klassifiseringer eller vurderinger. Når noe vises som «hijack»,
+          er det fordi Cloudflare har flagget det som hijack. Når et nettavbrudd vises, er det fordi
+          Cloudflare Radar har rapportert det. Alt råtall kommer direkte fra kildene — Nettradar
+          legger ikke til egen fortolkning.
         </p>
         <div class="fact-pills">
           <div class="fact-pill">
@@ -330,7 +336,7 @@
           </div>
           <div class="fact-pill">
             <span class="fact-label">Overvåkede ASN-er</span>
-            <span class="fact-value" id="asn-count">13 norske</span>
+            <span class="fact-value" id="asn-count">14 norske</span>
           </div>
           <div class="fact-pill">
             <span class="fact-label">Lagring</span>
@@ -340,6 +346,43 @@
       </div>
 
       <div class="section" id="s2">
+        <div class="section-kicker">Struktur</div>
+        <h2>De fire sidene</h2>
+      </div>
+      <div class="prose"><p>Nettradar består av fire fokuserte sider:</p></div>
+
+      <div class="event-grid" style="margin-bottom:32px">
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--dim)"></div>
+          <div class="event-header">
+            <span class="event-title">Dashboard</span>
+          </div>
+          <div class="event-body">Nasjonal status på én skjerm. DDoS-intensitet siste 24 t., siste flaggede hendelse, og kompakt oversikt over alt som er flagget innen Sikkerhet, Tilgjengelighet og Trafikkavvik.</div>
+        </div>
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--red)"></div>
+          <div class="event-header">
+            <span class="event-title">DDoS</span>
+          </div>
+          <div class="event-body">Større intensitetsgraf med tidsutvalg (24 t / 7 d / 30 d), full Kilde-AS-tabell og opprinnelses-land. Hva som angriper norske nettverk og hvor det kommer fra.</div>
+        </div>
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--blue)"></div>
+          <div class="event-header">
+            <span class="event-title">BGP-aktivitet</span>
+          </div>
+          <div class="event-body">Annonseringer, tilbaketrekk og prefiks-tellinger per overvåket norsk ASN, med sparkline-graf for hver. Cloudflare-flagg vises på ASN-er som har vært utsatt for hijack eller route leak siste 24 t.</div>
+        </div>
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--amber)"></div>
+          <div class="event-header">
+            <span class="event-title">Tilgjengelighet</span>
+          </div>
+          <div class="event-body">Aktive nettavbrudd og trafikkavvik mot norsk infrastruktur, rapportert av Cloudflare Radar. Historikk siste 30 dager.</div>
+        </div>
+      </div>
+
+      <div class="section" id="s3">
         <div class="section-kicker">Protokoll</div>
         <h2>BGP-hendelser</h2>
       </div>
@@ -396,7 +439,7 @@
         likt (f.eks. <code>2a02:ac81::/32</code>).
       </div>
 
-      <div class="section" id="s3">
+      <div class="section" id="s4">
         <div class="section-kicker">Angrep mot norske nettverk</div>
         <h2>DDoS-angrep</h2>
       </div>
@@ -447,95 +490,44 @@
         ISP-nett og on-premise-servere — er ikke synlig her.
       </div>
 
-      <div class="section" id="s4">
-        <div class="section-kicker">Hva du ser på forsiden</div>
-        <h2>Dashboard-paneler</h2>
-      </div>
-      <div class="prose"><p>Forsiden viser tre seksjoner som hver svarer på et spørsmål:</p></div>
-
-      <div class="panel-grid">
-        <div class="panel-card">
-          <div class="panel-q">«Er det noe galt akkurat nå?»</div>
-          <div class="panel-h">Sikkerhetsvarsler</div>
-          <div class="panel-body">Aktive BGP-hijacks og route leaks oppdaget av Cloudflare Radar, samt hijacks detektert fra RIPE RIS Live-strømmen. Grønt = ingen. Rødt = noe krever oppmerksomhet.</div>
-        </div>
-        <div class="panel-card">
-          <div class="panel-q">«Hvor mye DDoS-trafikk?»</div>
-          <div class="panel-h">DDoS-aktivitet</div>
-          <div class="panel-body">Time-for-time L7 (HTTP) og L3/4 (volum) DDoS-aktivitet rapportert av Cloudflare mot norsk infra. Y-aksen er normalisert: 1,0 = dagens topp for den typen, ikke et absolutt trafikktall.</div>
-        </div>
-        <div class="panel-card">
-          <div class="panel-q">«Hvem og hvor stammer det fra?»</div>
-          <div class="panel-h">Opprinnelse</div>
-          <div class="panel-body">Kilde-AS (hvilket nettverk angrepstrafikken kommer fra) og kilde-land (hvilken stat kilde-IP-en er registrert i). De fleste angrep bruker kompromitterte servere på tvers av land.</div>
-        </div>
-      </div>
-
       <div class="section" id="s5">
-        <div class="section-kicker">Egen fane</div>
-        <h2>BGP-aktivitet</h2>
+        <div class="section-kicker">Drifts-avvik fra Cloudflare</div>
+        <h2>Nettavbrudd og trafikkavvik</h2>
       </div>
       <div class="prose">
-        <p>BGP-aktivitet-siden gir to visninger av sanntidsdata fra norske nettverk:</p>
         <p>
-          <strong>Sammendrag</strong> — en tabell som summerer annonseringer, tilbaketrekk og hijacks per operatør
-          siden siden ble lastet. Oppdateres automatisk hvert 30. sekund. Sorterbar.
+          To kategorier fra Cloudflare Radar som handler om noe annet enn sikkerhetshendelser.
+          Begge er observasjoner, ikke vurderinger.
         </p>
-        <p>
-          <strong>Logg</strong> — en løpende strøm, nyeste øverst, de 150 siste hendelsene. Hijack-rader markeres rødt.
-          Teller for hend/min i panelet reflekterer faktisk BGP-aktivitet i norsk infrastruktur nå.
-        </p>
+      </div>
+
+      <div class="event-grid" style="margin-bottom:20px">
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--amber)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--amber);background:rgba(245,185,66,.14)">NETTAVBRUDD</span>
+            <span class="event-title">Faktiske avbrudd</span>
+          </div>
+          <div class="event-body">Faktiske, registrerte avbrudd: kabelbrekk, strømfeil, myndighetsstenging eller annen infrastruktur-svikt som tar et ASN eller en region helt eller delvis ut av drift. Cloudflare flagger et nettavbrudd når trafikken fra et område faller signifikant og holder seg lav over en terskel. Sjeldne, men alvorlige når de skjer.</div>
+        </div>
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--blue)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--blue);background:rgba(124,182,255,.14)">TRAFIKKAVVIK</span>
+            <span class="event-title">Statistiske avvik</span>
+          </div>
+          <div class="event-body">Statistiske avvik fra forventet trafikkvolum, beregnet mot 7-dagers baseline. Et avvik betyr ikke nødvendigvis at noe er galt — det kan signalisere kongestion, vedlikehold, sensur, eller bare et uvanlig trafikkmønster. Frekvente og informasjonelle. Fungerer som tidlig-indikatorer på nettverksfeil før de eventuelt eskalerer.</div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>Kildelink:</strong> Klassifiseringene kommer direkte fra Cloudflare Radars
+        <code>/outages</code> og <code>/traffic-anomalies</code> API-er. Nettradar viser dem uten
+        egen fortolkning eller terskelsetting — det Cloudflare flagger som nettavbrudd, vises som
+        nettavbrudd; det de flagger som trafikkavvik, vises som trafikkavvik.
       </div>
 
       <div class="section" id="s6">
-        <div class="section-kicker">Egen fane</div>
-        <h2>AS-Topologi</h2>
-      </div>
-      <div class="prose">
-        <p>
-          Et AS (Autonomous System) er et nett av IP-adresser under felles administrasjon — typisk
-          en ISP, et mobilnett eller en stor bedrift. Hvert AS har et unikt nummer (ASN). Telenor
-          er AS2119, UNINETT er AS2116, og så videre.
-        </p>
-        <p>
-          Topologigrafen viser norske AS-er som noder. En linje mellom to noder betyr at begge
-          dukket opp i samme BGP-rutingsti i live-dataen — altså at de faktisk ruter trafikk
-          gjennom hverandre.
-        </p>
-      </div>
-
-      <div class="legend-card">
-        <div class="legend-card-label">Farger og størrelser</div>
-        <div class="legend-grid">
-          <div class="legend-row">
-            <span class="legend-dot" style="background:#7ab8ff;box-shadow:0 0 8px rgba(122,184,255,.4)"></span>
-            <span style="font-weight:500;color:var(--text)">aktiv</span>
-            <span style="color:var(--dim)">— siste 5 sek.</span>
-          </div>
-          <div class="legend-row">
-            <span class="legend-dot" style="background:#4d94ff;box-shadow:0 0 8px rgba(77,148,255,.4)"></span>
-            <span style="font-weight:500;color:var(--text)">overvåket</span>
-            <span style="color:var(--dim)">— ingen fersk</span>
-          </div>
-          <div class="legend-row">
-            <span class="legend-dot" style="background:var(--amber);box-shadow:0 0 8px rgba(245,185,66,.4)"></span>
-            <span style="font-weight:500;color:var(--text)">gul ring</span>
-            <span style="color:var(--dim)">— tilbaketrekk siste 15 sek.</span>
-          </div>
-          <div class="legend-row">
-            <span class="legend-dot" style="background:var(--red);box-shadow:0 0 8px rgba(255,107,91,.4)"></span>
-            <span style="font-weight:500;color:var(--text)">rød node</span>
-            <span style="color:var(--dim)">— hijack siste 30 sek.</span>
-          </div>
-        </div>
-        <div style="font-size:12.5px;color:var(--dim);margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
-          <strong style="color:var(--text);font-weight:500">Nodestørrelse</strong> skalerer med antall BGP-hendelser i økten.
-          Grafen bygger seg opp etter hvert som data strømmer inn — 30–60 minutter for komplett bilde.
-          <strong style="color:var(--text);font-weight:500">Interaksjon:</strong> dra noder, scroll for zoom, hover for detaljer.
-        </div>
-      </div>
-
-      <div class="section" id="s7">
         <div class="section-kicker">Hvor dataene kommer fra</div>
         <h2>Datakilder</h2>
       </div>
@@ -562,7 +554,7 @@
             <span class="source-dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></span>
             <span class="source-name">PeeringDB</span>
           </div>
-          <div class="source-body">Register over norske nettverksoperatører og AS-nummer. Lastes ved oppstart og oppdateres daglig.</div>
+          <div class="source-body">Register over norske nettverksoperatører og AS-nummer. Den eneste kilden vi bruker for å bestemme hvilke ASN-er som er norske. Lastes ved oppstart og oppdateres daglig.</div>
           <div class="source-link" style="color:var(--green)">↗ peeringdb.com</div>
         </a>
       </div>
@@ -627,7 +619,7 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
 document.getElementById('asn-count').textContent = SEED_ASNS.length + ' norske';
 
 function updateActiveLink() {
-  const ids = ['s1','s2','s3','s4','s5','s6','s7'];
+  const ids = ['s1','s2','s3','s4','s5','s6'];
   let active = 's1';
   for (const id of ids) {
     const el = document.getElementById(id);
