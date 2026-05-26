@@ -11,7 +11,6 @@ FALLBACK_NO_ASNS: dict[int, str] = {
     8222: "Altibox",
     29695: "Ice.net",
     2116: "UNINETT",
-    6667: "Eunet Finland (historical NO)",
     39029: "NextGenTel",
     31027: "GreenHost",
     44543: "Broadnet",
@@ -24,8 +23,36 @@ FALLBACK_NO_ASNS: dict[int, str] = {
 
 PEERINGDB_URL = "https://www.peeringdb.com/api/net?country=NO&depth=0&limit=500"
 
+# NSP ekskludert: internasjonale transitleverandører (Cogent, Lumen, NTT, etc.) dukker opp
+# med country=NO pga. norsk IX-tilstedeværelse, men er ikke norske nettleverandører.
+INCLUDED_TYPES = {
+    'ISP', 'IXP', 'Educational', 'Non-Profit', 'Government', 'Route Server'
+}
+
+# Globale aktører som feilaktig dukker opp i PeeringDB country=NO-søket.
+EXCLUDED_ASNS: set[int] = {
+    6667,   # Eunet Finland (historisk, finsk)
+    1280,   # ISC — Internet Systems Consortium (USA)
+    6695,   # DE-CIX Frankfurt Route Servers (tysk)
+    7500,   # M-ROOT DNS Server (global)
+    20144,  # l.root-servers.net (global)
+    20766,  # Association Gitoyen (fransk)
+    22548,  # NIC.BR (brasiliansk)
+    25309,  # TOP-IX Route Servers (italiensk)
+    30141,  # Democratic National Committee (USA)
+    31529,  # DENIC Anycast (tysk)
+    31800,  # DALnet IRC Network
+    35627,  # Phyxia Networks
+    35701,  # Barnes & Morgan
+    36119,  # imeem, inc. (USA, nedlagt)
+    40064,  # AMATEUR-IX
+    40528,  # ICANN AS40528
+    42476,  # SwissIX Route Servers (sveitsisk)
+}
+
 
 async def load_no_asns() -> dict[int, str]:
+    result: dict[int, str] = {k: v for k, v in FALLBACK_NO_ASNS.items() if k not in EXCLUDED_ASNS}
     try:
         async with aiohttp.ClientSession(
             headers={"User-Agent": "nettradar/1.0 (bgp-dashboard)"},
@@ -33,23 +60,24 @@ async def load_no_asns() -> dict[int, str]:
         ) as session:
             async with session.get(PEERINGDB_URL) as resp:
                 if resp.status != 200:
-                    logger.warning("PeeringDB returned %s, using fallback", resp.status)
-                    return FALLBACK_NO_ASNS
+                    logger.warning("PeeringDB returned %s, using fallback only", resp.status)
+                    return result
                 data = await resp.json()
-                result: dict[int, str] = {}
                 for net in data.get("data", []):
                     asn = net.get("asn")
                     name = net.get("name", "").strip()
-                    if asn and name:
-                        result[int(asn)] = name
-                if not result:
-                    logger.warning("PeeringDB returned empty set, using fallback")
-                    return FALLBACK_NO_ASNS
-                logger.info("Loaded %d Norwegian ASNs from PeeringDB", len(result))
+                    if not asn or not name:
+                        continue
+                    if net.get("info_type", "") not in INCLUDED_TYPES:
+                        continue
+                    if int(asn) in EXCLUDED_ASNS:
+                        continue
+                    result[int(asn)] = name
+                logger.info("Loaded %d Norwegian ASNs (PeeringDB ISP/IXP/Edu + fallback)", len(result))
                 return result
     except Exception as exc:
-        logger.warning("PeeringDB fetch failed (%s), using fallback", exc)
-        return FALLBACK_NO_ASNS
+        logger.warning("PeeringDB fetch failed (%s), using fallback only", exc)
+        return result
 
 
 async def peeringdb_refresh_loop(state_module) -> None:

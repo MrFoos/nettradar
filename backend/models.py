@@ -33,6 +33,29 @@ class TrafficAnomaly(BaseModel):
     status: str
 
 
+class OutageEvent(BaseModel):
+    id: str
+    location: str
+    asn: Optional[int] = None
+    asn_name: Optional[str] = None
+    start_time: str
+    end_time: Optional[str] = None
+    type: str
+    description: Optional[str] = None
+
+
+class TrafficAnomalyEvent(BaseModel):
+    id: str
+    location: Optional[str] = None
+    asn: Optional[int] = None
+    asn_name: Optional[str] = None
+    start_time: str
+    end_time: Optional[str] = None
+    type: str
+    status: str
+    score: Optional[float] = None
+
+
 class AttackOrigin(BaseModel):
     country_code: str
     country_name: str
@@ -61,6 +84,8 @@ class RadarState(BaseModel):
     anomalies: list[TrafficAnomaly] = []
     attack_origins: list[AttackOrigin] = []
     attack_as_origins: list[AttackASOrigin] = []
+    active_outages: list[OutageEvent] = []
+    traffic_anomaly_events: list[TrafficAnomalyEvent] = []
     last_updated: Optional[float] = None
     attack_baseline_24h: float = 0.0
     current_attack_intensity: float = 0.0

@@ -56,17 +56,25 @@ app.mount("/static", StaticFiles(directory=str(FRONTEND / "static")), name="stat
 async def index():
     return FileResponse(FRONTEND / "index.html")
 
-@app.get("/topologi")
-async def topologi():
-    return FileResponse(FRONTEND / "topologi.html")
+@app.get("/ddos")
+async def ddos():
+    return FileResponse(FRONTEND / "ddos.html")
 
 @app.get("/bgp")
 async def bgp():
     return FileResponse(FRONTEND / "bgp.html")
 
+@app.get("/tilgjengelighet")
+async def tilgjengelighet():
+    return FileResponse(FRONTEND / "tilgjengelighet.html")
+
 @app.get("/om")
 async def om():
     return FileResponse(FRONTEND / "om.html")
+
+@app.get("/topologi")
+async def topologi():
+    return FileResponse(FRONTEND / "topologi.html")
 
 @app.get("/robots.txt")
 async def robots():
@@ -80,8 +88,9 @@ async def sitemap():
     content = """<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://nettradar.no/</loc><changefreq>hourly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://nettradar.no/ddos</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://nettradar.no/bgp</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://nettradar.no/topologi</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://nettradar.no/tilgjengelighet</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://nettradar.no/om</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>"""
     return Response(content=content, media_type="application/xml")

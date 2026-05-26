@@ -7,7 +7,7 @@ from datetime import datetime
 import aiohttp
 
 from . import state
-from .models import AttackASOrigin, AttackDataPoint, AttackOrigin, BGPEvent, HijackAlert, RadarState, RouteLeak, TrafficAnomaly
+from .models import AttackASOrigin, AttackDataPoint, AttackOrigin, BGPEvent, HijackAlert, OutageEvent, RadarState, RouteLeak, TrafficAnomaly, TrafficAnomalyEvent
 
 _seen_hijack_keys: set[tuple] = set()
 
@@ -81,6 +81,14 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
     as_origins_result = await _get(
         session, "/attacks/layer7/top/ases/origin",
         {"location": "NO", "limit": "15", "dateRange": "1d"}
+    )
+    outages_result = await _get(
+        session, "/outages",
+        {"location": "NO", "dateRange": "1d", "limit": "50"}
+    )
+    traffic_anomalies_result = await _get(
+        session, "/traffic-anomalies",
+        {"location": "NO", "status": "ANOMALOUS", "limit": "50"}
     )
 
     timeseries: list[AttackDataPoint] = []
@@ -189,6 +197,46 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
                 percentage=float(row.get("value", 0)),
             ))
 
+    active_outages: list[OutageEvent] = []
+    if outages_result:
+        raw_outages = outages_result.get("outages", [])
+        logger.info("Cloudflare outages: %d events from API", len(raw_outages))
+        for i, ev in enumerate(raw_outages):
+            asn_info = ev.get("asnDetails", ev.get("asn", {})) or {}
+            asn_id = asn_info.get("asn") or ev.get("asnId")
+            asn_name = asn_info.get("name") or ev.get("asnName")
+            active_outages.append(OutageEvent(
+                id=ev.get("id", str(i)),
+                location=ev.get("locationAlpha2", ev.get("location", "NO")),
+                asn=int(asn_id) if asn_id else None,
+                asn_name=asn_name,
+                start_time=ev.get("startDate", ev.get("start_time", "")),
+                end_time=ev.get("endDate", ev.get("end_time")) or None,
+                type=ev.get("type", "unknown"),
+                description=ev.get("description"),
+            ))
+
+    traffic_anomaly_events: list[TrafficAnomalyEvent] = []
+    if traffic_anomalies_result:
+        raw_anomalies = traffic_anomalies_result.get("trafficAnomalies", [])
+        logger.info("Cloudflare traffic anomalies: %d events from API", len(raw_anomalies))
+        for i, ev in enumerate(raw_anomalies):
+            asn_details = ev.get("asnDetails", {}) or {}
+            asn_obj = asn_details.get("asn", {}) or {}
+            asn_id = asn_obj.get("asn") or asn_details.get("asn")
+            asn_name = asn_obj.get("name") or asn_details.get("name")
+            traffic_anomaly_events.append(TrafficAnomalyEvent(
+                id=ev.get("id", str(i)),
+                location=ev.get("locationAlpha2", ev.get("location")),
+                asn=int(asn_id) if asn_id else None,
+                asn_name=asn_name,
+                start_time=ev.get("startDate", ev.get("start_time", "")),
+                end_time=ev.get("endDate", ev.get("end_time")) or None,
+                type=ev.get("type", "unknown"),
+                status=ev.get("status", "ANOMALOUS"),
+                score=float(ev.get("score", 0)) if ev.get("score") is not None else None,
+            ))
+
     if len(_seen_hijack_keys) > 2000:
         _seen_hijack_keys.clear()
 
@@ -221,6 +269,8 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
         anomalies=anomalies,
         attack_origins=origins,
         attack_as_origins=as_origins,
+        active_outages=active_outages,
+        traffic_anomaly_events=traffic_anomaly_events,
         last_updated=time.time(),
         attack_baseline_24h=baseline,
         current_attack_intensity=current_intensity,

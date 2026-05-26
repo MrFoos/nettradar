@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="no" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nettradar — DDoS-aktivitet</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="apple-touch-icon" href="/static/favicon.svg">
+  <link rel="canonical" href="https://nettradar.no/ddos">
+  <meta name="description" content="DDoS-aktivitet mot norsk internett. Detaljert intensitetsgraf, Kilde-AS og opprinnelsesland i sanntid.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nettradar.no/ddos">
+  <meta property="og:title" content="Nettradar — DDoS-aktivitet">
+  <meta property="og:description" content="DDoS-aktivitet mot norsk internett. Detaljert intensitetsgraf, Kilde-AS og opprinnelsesland i sanntid.">
+  <meta property="og:locale" content="nb_NO">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0c; --text: #f5f5f7; --dim: #a8a8b3; --dimmer: #7a7a8a;
+      --card: #0f0f12; --card-elevated: #13131a; --border: rgba(255,255,255,0.07);
+      --accent: #d4d4dc; --red: #ff6b5b; --amber: #f5b942; --green: #4fd58a; --blue: #7cb6ff;
+    }
+    [data-theme="light"] {
+      --bg: #f7f6f3; --text: #15151a; --dim: #5a5a63; --dimmer: #8a8a93;
+      --card: #ffffff; --card-elevated: #ffffff; --border: rgba(15,15,26,0.10);
+      --accent: #15151a; --red: #d83a2e; --amber: #b87a0c; --green: #1f7a3e; --blue: #1e5fc9;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 13px; font-feature-settings: "cv11","ss01";
+    }
+    a { color: inherit; text-decoration: none; }
+    @keyframes c-pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* NAV */
+    .nav {
+      display: flex; align-items: center; padding: 24px 40px 18px; gap: 28px;
+      border-bottom: 1px solid var(--border); position: sticky; top: 0;
+      background: var(--bg); z-index: 10;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; }
+    .nav-links { display: flex; gap: 18px; margin-left: 20px; }
+    .nav-link { font-size: 13px; color: var(--dim); font-weight: 500; transition: color .15s; }
+    .nav-link:hover { color: var(--text); }
+    .nav-link.active { color: var(--text); font-weight: 600; }
+    .nav-right {
+      display: flex; align-items: center; gap: 14px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--dim);
+    }
+    .status-indicator { display: inline-flex; align-items: center; gap: 5px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 3px; background: var(--dimmer); display: inline-block; }
+    .status-dot.live { background: var(--green); animation: c-pulse 2.5s ease-in-out infinite; }
+    .theme-btn {
+      width: 34px; height: 34px; border-radius: 50%; cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center; border: 1.5px solid;
+      transition: transform .15s, background .15s, border-color .15s;
+    }
+    .theme-btn:hover { transform: scale(1.05); }
+    [data-theme="dark"]  .theme-btn { color:#f5b942; border-color:rgba(245,185,66,.3); background:rgba(245,185,66,.07); }
+    [data-theme="dark"]  .theme-btn:hover { border-color:rgba(245,185,66,.5); background:rgba(245,185,66,.13); }
+    [data-theme="light"] .theme-btn { color:#2d5082; border-color:rgba(45,80,130,.25); background:rgba(45,80,130,.06); }
+    [data-theme="light"] .theme-btn:hover { border-color:rgba(45,80,130,.45); background:rgba(45,80,130,.11); }
+    .theme-icon-sun, .theme-icon-moon { display: none; pointer-events: none; }
+    [data-theme="dark"]  .theme-icon-sun  { display: block; }
+    [data-theme="light"] .theme-icon-moon { display: block; }
+    /* HAMBURGER + DRAWER */
+    .hamburger-btn {
+      display: none; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border);
+      background: transparent; color: var(--text); cursor: pointer;
+      transition: background .15s, border-color .15s; padding: 0; position: relative; flex-shrink: 0;
+    }
+    .hamburger-btn:hover { background: var(--card-elevated); }
+    .ham-icon, .ham-close {
+      position: absolute; display: flex; align-items: center; justify-content: center;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .ham-icon { opacity: 1; transform: scale(1) rotate(0deg); }
+    .ham-close { opacity: 0; transform: scale(.7) rotate(-45deg); }
+    .hamburger-btn[aria-expanded="true"] .ham-icon { opacity: 0; transform: scale(.7) rotate(45deg); }
+    .hamburger-btn[aria-expanded="true"] .ham-close { opacity: 1; transform: scale(1) rotate(0deg); }
+    .nav-drawer {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+      display: flex; flex-direction: column;
+      background: var(--card-elevated); border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0,0,0,.28); padding: 12px 0;
+      visibility: hidden; opacity: 0; transform: translateY(-8px); pointer-events: none;
+      transition: opacity 180ms ease-out, transform 180ms ease-out, visibility 0ms 180ms;
+    }
+    [data-theme="light"] .nav-drawer { box-shadow: 0 8px 24px rgba(0,0,0,.09); }
+    .nav-drawer.open {
+      visibility: visible; opacity: 1; transform: translateY(0); pointer-events: auto;
+      transition: opacity 180ms ease-out, transform 180ms ease-out;
+    }
+    .drawer-link {
+      display: block; font-size: 16px; font-weight: 500; color: var(--dim);
+      padding: 14px 24px; text-decoration: none;
+      border-left: 3px solid transparent; border-bottom: 1px solid var(--border);
+      transition: color .15s, background .15s, border-left-color .15s;
+    }
+    .drawer-link:last-child { border-bottom: none; }
+    .drawer-link:hover, .drawer-link:focus-visible { color: var(--text); background: rgba(255,255,255,.04); outline: none; }
+    [data-theme="light"] .drawer-link:hover, [data-theme="light"] .drawer-link:focus-visible { background: rgba(0,0,0,.04); }
+    .drawer-link.active { color: var(--text); border-left-color: var(--accent); background: rgba(255,255,255,.03); }
+    [data-theme="light"] .drawer-link.active { background: rgba(0,0,0,.03); }
+
+    /* HERO */
+    .page-label { font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--dim); margin-bottom: 12px; }
+    .hero { padding: 32px 40px 24px; }
+    .hero-h1 { font-size: 42px; font-weight: 500; letter-spacing: -1.4px; line-height: 1.05; margin: 0; text-wrap: balance; }
+    .hero-h1 .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    .hero-stats { margin-top: 22px; display: flex; gap: 48px; flex-wrap: wrap; }
+    .stat-label { font-size: 11px; color: var(--dim); margin-bottom: 4px; letter-spacing: .2px; }
+    .stat-val-row { display: flex; align-items: baseline; gap: 4px; }
+    .stat-num { font-size: 26px; font-weight: 500; letter-spacing: -.8px; font-variant-numeric: tabular-nums; line-height: 1; font-family: 'JetBrains Mono', monospace; }
+    .stat-unit { font-size: 13px; color: var(--dim); }
+    .stat-sub { font-size: 11px; color: var(--dim); margin-top: 2px; }
+
+    /* SECTIONS */
+    .section { padding: 0 40px; margin-bottom: 24px; }
+    .section-header {
+      display: flex; align-items: baseline; gap: 12px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
+    }
+    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--dim); }
+    .section-sub { font-size: 11.5px; color: var(--dim); }
+
+    /* CARDS */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .card-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 10px; }
+    .card-title { font-size: 13.5px; font-weight: 600; }
+    .card-sub { font-size: 11px; color: var(--dim); }
+    .chart-wrap { min-height: 240px; }
+    .chart-legend { display: flex; gap: 16px; padding: 8px 20px 14px; font-size: 11px; color: var(--dim); }
+    .leg-item { display: inline-flex; align-items: center; gap: 6px; }
+    .leg-line { width: 14px; height: 2px; flex-shrink: 0; }
+
+    /* GRID LAYOUTS */
+    .grid-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+    /* TABLE */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.1px; text-transform: uppercase;
+      color: var(--dim); padding: 8px 20px; border-bottom: 1px solid var(--border); text-align: left;
+    }
+    .data-table td { padding: 10px 20px; border-bottom: 1px solid var(--border); font-size: 12.5px; vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr.high-intensity { border-left: 2px solid var(--red); background: rgba(255,107,91,.03); }
+    .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    .text-right { text-align: right; }
+    .text-dim { color: var(--dim); }
+
+    /* INTENSITY BAR */
+    .intensity-bar { display: inline-flex; align-items: center; gap: 8px; }
+    .intensity-track { width: 70px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .intensity-fill { height: 100%; border-radius: 2px; }
+
+    /* BAR ROW (Kilde-AS) */
+    .bar-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 2px; }
+
+    /* EMPTY STATE */
+    .empty-state { padding: 32px 20px; color: var(--dim); font-size: 13px; text-align: center; }
+
+::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--card); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    @media (max-width: 1099px) {
+      .nav-links { gap: 14px; }
+      .nav-link { font-size: 12.5px; }
+      #nav-clock { display: none !important; }
+      .grid-equal { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 959px) {
+      .nav-links { display: none; }
+      .hamburger-btn { display: flex; }
+      .hero { padding: 24px 20px 20px; }
+      .hero-h1 { font-size: 30px; letter-spacing: -1px; }
+      .hero-stats { gap: 24px 32px; }
+      .section { padding: 0 20px; }
+      .nav { padding: 18px 20px 14px; gap: 14px; }
+    }
+    @media (max-width: 700px) {
+      .nav-right .status-indicator { display: none; }
+    }
+    .skip-link {
+      position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
+    }
+    .skip-link:focus {
+      position: fixed; top: 8px; left: 8px; width: auto; height: auto;
+      padding: 8px 16px; background: var(--bg); color: var(--text);
+      border: 2px solid var(--accent); border-radius: 6px;
+      font-size: 13px; font-weight: 600; z-index: 9999;
+    }
+  </style>
+  <script defer src="https://umami.nettradar.no/script.js" data-website-id="1c7c3c7e-4456-4d21-8837-d4dab429f5ab"></script>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Hopp til innhold</a>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="/" class="nav-brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="10" stroke="var(--accent)" stroke-width="1.2" opacity=".25"/>
+      <circle cx="11" cy="11" r="6.5" stroke="var(--accent)" stroke-width="1.2" opacity=".5"/>
+      <circle cx="11" cy="11" r="2.5" fill="var(--accent)"/>
+    </svg>
+    <span><span style="font-size:19px;font-weight:700;letter-spacing:-.4px">nettradar</span><span style="font-size:19px;font-weight:400;color:var(--dim);letter-spacing:-.4px">.no</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/ddos" class="nav-link active">DDoS</a>
+    <a href="/bgp" class="nav-link">BGP-aktivitet</a>
+    <a href="/tilgjengelighet" class="nav-link">Tilgjengelighet</a>
+    <a href="/om" class="nav-link">Om Nettradar</a>
+  </div>
+  <span style="flex:1"></span>
+  <div class="nav-right">
+    <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE</span></span>
+    <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
+    <span id="nav-clock">--:--:--</span>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Bytt til lys modus">
+      <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="3.2"/><line x1="8" y1="1" x2="8" y2="2.5"/><line x1="8" y1="13.5" x2="8" y2="15"/><line x1="1" y1="8" x2="2.5" y2="8"/><line x1="13.5" y1="8" x2="15" y2="8"/><line x1="3.34" y1="3.34" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="12.66" y2="12.66"/><line x1="3.34" y1="12.66" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="12.66" y2="3.34"/></svg>
+      <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="#2d5082" stroke="#2d5082" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleNav()" aria-expanded="false" aria-label="Åpne meny">
+      <svg class="ham-icon" width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="0" y1="1" x2="18" y2="1"/><line x1="0" y1="6" x2="18" y2="6"/><line x1="0" y1="11" x2="18" y2="11"/></svg>
+      <svg class="ham-close" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+    </button>
+  </div>
+  <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigasjonsmeny">
+    <a href="/" class="drawer-link">Dashboard</a>
+    <a href="/ddos" class="drawer-link active">DDoS</a>
+    <a href="/bgp" class="drawer-link">BGP-aktivitet</a>
+    <a href="/tilgjengelighet" class="drawer-link">Tilgjengelighet</a>
+    <a href="/om" class="drawer-link">Om Nettradar</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main id="main-content">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="page-label">DDoS-aktivitet</div>
+  <h1 class="hero-h1" id="hero-h1">
+    DDoS-intensitet mot norske ASN-er <span style="color:var(--dim);font-weight:400">siste 24 t.</span>
+  </h1>
+  <div class="hero-stats">
+    <div>
+      <div class="stat-label">Topp-intensitet</div>
+      <div class="stat-val-row"><span class="stat-num" id="stat-peak">—</span></div>
+      <div class="stat-sub" id="stat-peak-sub"></div>
+    </div>
+    <div>
+      <div class="stat-label">Snitt L7</div>
+      <div class="stat-val-row"><span class="stat-num" id="stat-avg-l7">—</span></div>
+    </div>
+    <div>
+      <div class="stat-label">Snitt L3/4</div>
+      <div class="stat-val-row"><span class="stat-num" id="stat-avg-l3">—</span></div>
+    </div>
+    <div>
+      <div class="stat-label">Mot snitt</div>
+      <div class="stat-val-row"><span class="stat-num" id="stat-vs-avg">—</span><span class="stat-unit">%</span></div>
+    </div>
+    <div>
+      <div class="stat-label">Unike Kilde-AS</div>
+      <div class="stat-val-row"><span class="stat-num" id="stat-sources">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTENSITETSGRAF -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">Intensitet mot Norge</span>
+    <span class="section-sub" id="chart-sub">siste 24 timer · normalisert (0–1)</span>
+    <span style="flex:1"></span>
+    <span id="ddos-delta" style="font-size:12px;font-weight:600;color:var(--dim)">—</span>
+  </div>
+  <div class="card">
+    <div class="chart-wrap" id="chart-wrap" style="height:320px;overflow:hidden">
+      <svg id="ddos-chart" style="display:block;width:100%;height:100%"></svg>
+    </div>
+    <div class="chart-legend">
+      <span class="leg-item"><span class="leg-line" style="background:var(--amber)"></span>L7 (app)</span>
+      <span class="leg-item"><span class="leg-line" style="background:var(--red)"></span>L3/4 (volum)</span>
+      <span style="flex:1"></span>
+      <span id="chart-updated">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- KILDE-AS + OPPRINNELSE -->
+<div class="section">
+  <div class="grid-equal">
+    <!-- KILDE-AS -->
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="card-header">
+        <span class="card-title">Kilde-AS</span>
+        <span class="card-sub">andel av angrep</span>
+        <span style="flex:1"></span>
+        <span id="kilde-count" class="mono" style="font-size:11px;color:var(--dim)"></span>
+      </div>
+      <div style="max-height:480px;overflow-y:auto">
+        <table class="data-table">
+          <thead style="position:sticky;top:0;background:var(--card);z-index:1">
+            <tr>
+              <th style="width:90px">ASN</th>
+              <th>Operatør</th>
+              <th>Andel</th>
+              <th class="text-right" style="width:60px">%</th>
+            </tr>
+          </thead>
+          <tbody id="kilde-as-tbody">
+            <tr><td colspan="4" class="empty-state">Laster…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- OPPRINNELSE -->
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="card-header">
+        <span class="card-title">Opprinnelse</span>
+        <span class="card-sub">kilde-IP per land</span>
+        <span style="flex:1"></span>
+        <span id="origin-count" class="mono" style="font-size:11px;color:var(--dim)"></span>
+      </div>
+      <div style="max-height:480px;overflow-y:auto">
+        <table class="data-table" id="origin-table">
+          <thead style="position:sticky;top:0;background:var(--card);z-index:1">
+            <tr>
+              <th style="width:28px"></th>
+              <th>Land</th>
+              <th>Andel</th>
+              <th class="text-right" style="width:56px">%</th>
+            </tr>
+          </thead>
+          <tbody id="origin-tbody">
+            <tr><td colspan="4" class="empty-state">Laster…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</main>
+
+<script>
+// ── Theme ──────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('nt-theme', t);
+  document.getElementById('theme-btn').setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus');
+  renderChart();
+}
+(function(){
+  const t = localStorage.getItem('nt-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus');
+})();
+
+// ── Nav drawer ──────────────────────────────────────────────────────────────
+function _navTrap(e) {
+  const focusable = Array.from(document.getElementById('nav-drawer').querySelectorAll('a[href], button:not([disabled])'));
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (e.key !== 'Tab') return;
+  if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+  else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+}
+function openNav() {
+  const btn = document.getElementById('hamburger-btn');
+  const drawer = document.getElementById('nav-drawer');
+  drawer.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Lukk meny');
+  drawer.addEventListener('keydown', _navTrap);
+  requestAnimationFrame(() => { const f = drawer.querySelector('a[href]'); if (f) f.focus(); });
+}
+function closeNav() {
+  const btn = document.getElementById('hamburger-btn');
+  const drawer = document.getElementById('nav-drawer');
+  if (!drawer.classList.contains('open')) return;
+  drawer.classList.remove('open'); drawer.removeEventListener('keydown', _navTrap);
+  btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-label', 'Åpne meny'); btn.focus();
+}
+function toggleNav() { if (document.getElementById('nav-drawer').classList.contains('open')) closeNav(); else openNav(); }
+document.querySelectorAll('.drawer-link').forEach(a => a.addEventListener('click', closeNav));
+document.addEventListener('click', function(e) { if (!document.querySelector('nav.nav').contains(e.target)) closeNav(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeNav(); });
+
+// ── Clock ──────────────────────────────────────────────────────────────────
+function updateClock() {
+  const fmt = window.innerWidth > 480 ? {hour:'2-digit',minute:'2-digit',second:'2-digit'} : {hour:'2-digit',minute:'2-digit'};
+  document.getElementById('nav-clock').textContent = new Date().toLocaleTimeString('nb-NO', fmt);
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function flag(code) {
+  if (!code || code.length !== 2) return '🌐';
+  return String.fromCodePoint(...[...code.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+}
+function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function fmtNum(n) { return (n || 0).toLocaleString('nb-NO'); }
+
+// ── Chart ──────────────────────────────────────────────────────────────────
+let chartL7 = [], chartL3 = [];
+
+function renderChart() {
+  const wrap = document.getElementById('chart-wrap');
+  const svg = document.getElementById('ddos-chart');
+  const W = wrap.clientWidth || 600;
+  const H = Math.min(Math.max(wrap.clientHeight || 240, 200), parseInt(wrap.style.height) || 400);
+  svg.setAttribute('width', W); svg.setAttribute('height', H);
+
+  if (chartL7.length < 2 && chartL3.length < 2) {
+    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="${cssVar('--dim')}">Venter på data…</text>`;
+    return;
+  }
+  const padT = 10, padB = 36, padL = 52, padR = 10;
+  const iH = H - padT - padB, iW = W - padL - padR;
+  const xa = (i, n) => padL + (i / (n - 1)) * iW;
+  const ya = v => padT + (1 - Math.max(0, Math.min(1, v))) * iH;
+  const line = d => d.map((p, i) => `${i === 0 ? 'M' : 'L'}${xa(i, d.length).toFixed(1)},${ya(p.value).toFixed(1)}`).join(' ');
+  const area = d => d.length < 2 ? '' : line(d) + ` L${xa(d.length - 1, d.length).toFixed(1)},${(padT + iH).toFixed(1)} L${xa(0, d.length).toFixed(1)},${(padT + iH).toFixed(1)} Z`;
+
+  const red = cssVar('--red'), amber = cssVar('--amber'), dim = cssVar('--dim'), txt = cssVar('--text');
+  const src = chartL7.length >= chartL3.length ? chartL7 : chartL3;
+  const n = src.length;
+
+  const yVals = [1, 0.75, 0.5, 0.25, 0];
+  const yGrid = yVals.map(v => {
+    const y = ya(v).toFixed(1);
+    const dash = v > 0 ? ' stroke-dasharray="3 4"' : '';
+    return `<line x1="${padL}" y1="${y}" x2="${padL + iW}" y2="${y}" stroke="${dim}" stroke-opacity=".2" stroke-width="1"${dash}/><text x="${padL - 6}" y="${(parseFloat(y) + 4).toFixed(1)}" text-anchor="end" font-size="11.5" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${v.toFixed(2)}</text>`;
+  }).join('');
+
+  const yCenterNeg = -(padT + iH / 2);
+  const yTitle = `<text transform="rotate(-90)" x="${yCenterNeg.toFixed(0)}" y="12" text-anchor="middle" font-size="10.5" font-weight="600" font-family="JetBrains Mono,monospace" letter-spacing="1.4" fill="${dim}">INTENSITET (0–1)</text>`;
+
+  const xTicks = [];
+  for (let s = 0; s <= 8; s++) {
+    const idx = Math.round((s / 8) * (n - 1));
+    if (idx >= 0 && idx < n) {
+      const hr = String(new Date(src[idx].timestamp).getHours()).padStart(2, '0');
+      xTicks.push(`<text x="${xa(idx, n).toFixed(1)}" y="${(padT + iH + 17).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${hr}</text>`);
+    }
+  }
+  const xTitle = `<text x="${(padL + iW / 2).toFixed(1)}" y="${H - 4}" text-anchor="middle" font-size="10.5" font-weight="600" font-family="JetBrains Mono,monospace" letter-spacing="1.4" fill="${dim}">TIME (24 T)</text>`;
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="gl3" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${red}" stop-opacity=".35"/><stop offset="100%" stop-color="${red}" stop-opacity="0"/></linearGradient>
+      <linearGradient id="gl7" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${amber}" stop-opacity=".3"/><stop offset="100%" stop-color="${amber}" stop-opacity="0"/></linearGradient>
+    </defs>
+    ${chartL3.length >= 2 ? `<path d="${area(chartL3)}" fill="url(#gl3)"/><path d="${line(chartL3)}" fill="none" stroke="${red}" stroke-width="1.6"/>` : ''}
+    ${chartL7.length >= 2 ? `<path d="${area(chartL7)}" fill="url(#gl7)"/><path d="${line(chartL7)}" fill="none" stroke="${amber}" stroke-width="1.4"/>` : ''}
+    ${yGrid}${yTitle}
+    ${xTicks.join('')}`;
+}
+
+const ro = new ResizeObserver(renderChart);
+ro.observe(document.getElementById('chart-wrap'));
+
+function renderKildeAs(list) {
+  const tbody = document.getElementById('kilde-as-tbody');
+  const countEl = document.getElementById('kilde-count');
+  if (!list || !list.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Ingen data</td></tr>';
+    if (countEl) countEl.textContent = '';
+    return;
+  }
+  const max = list[0].percentage || 1;
+  tbody.innerHTML = list.map(r => `
+    <tr>
+      <td><span class="mono text-dim" style="font-size:12px">AS${r.as_number}</span></td>
+      <td>${r.as_name || '—'}</td>
+      <td><div class="bar-track"><div class="bar-fill" style="width:${((r.percentage/max)*100).toFixed(1)}%;background:var(--red)"></div></div></td>
+      <td class="text-right mono" style="font-size:12.5px;font-weight:600">${(r.percentage||0).toFixed(1)}</td>
+    </tr>`).join('');
+  if (countEl) countEl.textContent = list.length + ' AS';
+}
+
+function renderOriginTable(origins) {
+  const tbody = document.getElementById('origin-tbody');
+  const countEl = document.getElementById('origin-count');
+  if (!origins || !origins.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Ingen data</td></tr>';
+    if (countEl) countEl.textContent = '';
+    return;
+  }
+  const max = origins[0].percentage || 1;
+  tbody.innerHTML = origins.map(o => `
+    <tr>
+      <td style="font-size:17px;line-height:1;padding-left:16px">${flag(o.country_code)}</td>
+      <td>${o.country_name || o.country_code}</td>
+      <td><div class="bar-track"><div class="bar-fill" style="width:${((o.percentage/max)*100).toFixed(1)}%;background:var(--red)"></div></div></td>
+      <td class="text-right mono" style="font-size:12.5px;font-weight:600">${(o.percentage||0).toFixed(1)}</td>
+    </tr>`).join('');
+  if (countEl) countEl.textContent = origins.length + ' land';
+}
+
+// ── State ──────────────────────────────────────────────────────────────────
+let noAsns = {};
+
+function applySnapshot(data) {
+  noAsns = {};
+  Object.entries(data.no_asns || {}).forEach(([k,v]) => { noAsns[parseInt(k)] = v; });
+
+  const radar = data.radar || {};
+
+  // Timeseries
+  chartL7 = radar.attack_timeseries || [];
+  chartL3 = radar.layer3_timeseries || [];
+  renderChart();
+
+  // Compute stats from timeseries
+  if (chartL7.length > 0 || chartL3.length > 0) {
+    const allL7 = chartL7.map(p => p.value);
+    const allL3 = chartL3.map(p => p.value);
+    const peakL7 = allL7.length ? Math.max(...allL7) : 0;
+    const peakL3 = allL3.length ? Math.max(...allL3) : 0;
+    const peak = Math.max(peakL7, peakL3);
+    const avgL7 = allL7.length ? allL7.reduce((s, v) => s + v, 0) / allL7.length : 0;
+    const avgL3 = allL3.length ? allL3.reduce((s, v) => s + v, 0) / allL3.length : 0;
+
+    document.getElementById('stat-peak').textContent = peak.toFixed(2);
+    document.getElementById('stat-avg-l7').textContent = avgL7.toFixed(2);
+    document.getElementById('stat-avg-l3').textContent = avgL3.toFixed(2);
+
+    const baseline = radar.attack_baseline_24h || 0;
+    const current = radar.current_attack_intensity || 0;
+    const deltaEl = document.getElementById('stat-vs-avg');
+    const ddosDelta = document.getElementById('ddos-delta');
+    if (baseline > 0) {
+      const delta = Math.round((current / baseline - 1) * 100);
+      deltaEl.textContent = (delta >= 0 ? '+' : '') + delta;
+      deltaEl.closest('.stat-val-row').querySelector('.stat-num').style.color = delta > 0 ? 'var(--red)' : 'var(--green)';
+      ddosDelta.textContent = delta > 0 ? `+${delta}% over snitt` : `${Math.abs(delta)}% under snitt`;
+      ddosDelta.style.color = delta > 0 ? 'var(--red)' : 'var(--green)';
+    }
+  }
+
+  // Kilde-AS count as "Unike Kilde-AS"
+  const asOrigins = radar.attack_as_origins || [];
+  document.getElementById('stat-sources').textContent = asOrigins.length > 0 ? asOrigins.length + '+' : '—';
+
+  // Charts
+  renderKildeAs(asOrigins);
+  renderOriginTable(radar.attack_origins || []);
+
+  // Updated timestamp
+  document.getElementById('chart-updated').textContent = `oppdatert ${new Date().toLocaleTimeString('nb-NO', {hour:'2-digit',minute:'2-digit'})}`;
+
+  // Cloudflare indicator
+  if (radar.last_updated) document.getElementById('cf-dot').classList.add('live');
+}
+
+// ── WebSocket ──────────────────────────────────────────────────────────────
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+  ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'state_snapshot' || msg.type === 'radar_update') {
+      applySnapshot(msg.type === 'state_snapshot' ? msg.data : { radar: msg.data, no_asns: noAsns });
+    }
+  };
+  ws.onclose = () => {
+    document.getElementById('ripe-dot').classList.remove('live');
+    setTimeout(connect, 3000);
+  };
+  ws.onerror = () => ws.close();
+}
+connect();
+</script>
+</body>
+</html>
