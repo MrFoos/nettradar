@@ -18,7 +18,7 @@ POLL_INTERVAL = 60
 PREFIX_REFRESH_INTERVAL = 3600
 
 # Major Norwegian ASNs to seed prefix set (PeeringDB may return more)
-SEED_NO_ASNS = [2119, 16175, 12929, 8222, 29695, 2116, 39029, 44543, 56655, 43996]
+SEED_NO_ASNS = [2119, 16175, 12929, 8222, 29695, 2116, 8896, 224, 39029, 44543, 56655, 43996, 25400, 51829]
 
 
 def _headers() -> dict[str, str]:

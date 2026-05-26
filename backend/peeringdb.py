@@ -5,20 +5,41 @@ import logging
 logger = logging.getLogger(__name__)
 
 FALLBACK_NO_ASNS: dict[int, str] = {
-    2119: "Telenor Norge",
-    16175: "Lyse Tele",
-    12929: "BaneTele",
-    8222: "Altibox",
-    29695: "Ice.net",
-    2116: "UNINETT",
-    39029: "NextGenTel",
-    31027: "GreenHost",
-    44543: "Broadnet",
-    43996: "Ventelo",
-    198144: "Eidsiva Nett",
-    56655: "TDC Norge",
-    3292: "TDC",
-    20834: "Catchcom",
+    2119:   "Telenor Norge",
+    16175:  "Lyse Tele",
+    8222:   "Altibox",
+    29695:  "Altibox / Lyse Fiber",
+    39029:  "NextGenTel",
+    31027:  "GreenHost",
+    2116:   "GlobalConnect",
+    8896:   "GlobalConnect",
+    44543:  "GlobalConnect (tidl. Broadnet)",
+    43996:  "GlobalConnect (tidl. Ventelo)",
+    198144: "GlobalConnect (tidl. Eidsiva Nett)",
+    20834:  "GlobalConnect (tidl. Catchcom)",
+    25400:  "Telia Norge",
+    56655:  "Telia Norge (tidl. TDC Norge)",
+    3292:   "Telia (DK)",
+    12929:  "Bane NOR (tidl. BaneTele)",
+    51829:  "Bane NOR",
+    224:    "Sikt (Uninett)",
+}
+
+# Overstyrer utdaterte PeeringDB-navn etter oppkjøp — alltid gjeldende.
+NAME_OVERRIDES: dict[int, str] = {
+    2116:   "GlobalConnect",
+    8896:   "GlobalConnect",
+    44543:  "GlobalConnect (tidl. Broadnet)",
+    43996:  "GlobalConnect (tidl. Ventelo)",
+    198144: "GlobalConnect (tidl. Eidsiva Nett)",
+    20834:  "GlobalConnect (tidl. Catchcom)",
+    25400:  "Telia Norge",
+    56655:  "Telia Norge (tidl. TDC Norge)",
+    3292:   "Telia (DK)",
+    12929:  "Bane NOR (tidl. BaneTele)",
+    51829:  "Bane NOR",
+    29695:  "Altibox / Lyse Fiber",
+    224:    "Sikt (Uninett)",
 }
 
 PEERINGDB_URL = "https://www.peeringdb.com/api/net?country=NO&depth=0&limit=500"
@@ -73,6 +94,7 @@ async def load_no_asns() -> dict[int, str]:
                     if int(asn) in EXCLUDED_ASNS:
                         continue
                     result[int(asn)] = name
+                result.update(NAME_OVERRIDES)
                 logger.info("Loaded %d Norwegian ASNs (PeeringDB ISP/IXP/Edu + fallback)", len(result))
                 return result
     except Exception as exc:
