@@ -320,10 +320,10 @@
           kilder: RIPE RIS, Cloudflare Radar og PeeringDB.
         </p>
         <p class="om-lead" style="margin-top:14px;font-size:15px">
-          Nettradar gjør ingen egne klassifiseringer eller vurderinger. Når noe vises som «hijack»,
-          er det fordi Cloudflare har flagget det som hijack. Når et nettavbrudd vises, er det fordi
-          Cloudflare Radar har rapportert det. Alt råtall kommer direkte fra kildene — Nettradar
-          legger ikke til egen fortolkning.
+          BGP-hijacks oppdages fra to kilder: Cloudflare Radar flagger hijacks via sin API, og
+          Nettradar detekterer i tillegg hijacks direkte fra RIPE RIS-strømmen når en ikke-norsk
+          ASN annonserer et norsk prefiks. Nettavbrudd og trafikkavvik rapporteres utelukkende av
+          Cloudflare Radar.
         </p>
         <div class="fact-pills">
           <div class="fact-pill">
@@ -347,9 +347,8 @@
 
       <div class="section" id="s2">
         <div class="section-kicker">Struktur</div>
-        <h2>De fire sidene</h2>
+        <h2>Sidene</h2>
       </div>
-      <div class="prose"><p>Nettradar består av fire fokuserte sider:</p></div>
 
       <div class="event-grid" style="margin-bottom:32px">
         <div class="event-card">
@@ -538,7 +537,7 @@
             <span class="source-dot" style="background:var(--blue);box-shadow:0 0 8px var(--blue)"></span>
             <span class="source-name">RIPE RIS Live</span>
           </div>
-          <div class="source-body">Persistent WebSocket-strøm av globale BGP-oppdateringer. Filtrert på norske AS-nummer og prefikser. Gratis, ingen nøkkel.</div>
+          <div class="source-body">Persistent WebSocket-strøm av globale BGP-oppdateringer. Filtrert på norske AS-nummer og prefikser. Nettradar bruker også RIPE-dataene til lokal hijack-deteksjon: annonsering av norsk prefiks fra ikke-norsk ASN flagges som hijack. Gratis, ingen nøkkel.</div>
           <div class="source-link" style="color:var(--blue)">↗ ris-live.ripe.net</div>
         </a>
         <a class="source-card" href="https://radar.cloudflare.com" target="_blank" rel="noopener noreferrer" style="--card-color:var(--amber)">

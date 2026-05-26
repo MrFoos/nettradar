@@ -125,7 +125,7 @@
       display: flex; align-items: baseline; gap: 12px;
       padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 14px;
     }
-    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--dim); }
+    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text); }
     .section-sub { font-size: 11.5px; color: var(--dim); }
 
     /* ASN GRID */
@@ -213,7 +213,7 @@
     .source-footer { padding: 24px 40px 32px; border-top: 1px solid var(--border); }
     .source-footer-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 1.6px; color: var(--dimmer); text-transform: uppercase; margin-bottom: 10px; }
     .source-footer-items { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--dim); line-height: 1.5; }
-    .source-footer-items strong { color: var(--text); font-weight: 600; }
+    .source-footer-items strong { color: var(--dim); font-weight: 600; }
 
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--card); }
@@ -226,7 +226,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--accent); animation: spin .8s linear infinite; }
 
-    @media (max-width: 1099px) { .nav-links { gap: 14px; } .nav-link { font-size: 12.5px; } #nav-clock { display: none !important; } }
+    @media (max-width: 1099px) { .nav-links { gap: 14px; } .nav-link { font-size: 12.5px; } }
     @media (max-width: 959px) { .nav-links { display: none; } .hamburger-btn { display: flex; } }
     @media (max-width: 960px) {
       .hero { padding: 28px 20px 20px; }
@@ -239,7 +239,7 @@
     }
     @media (max-width: 600px) { .asn-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 480px) { .asn-grid { grid-template-columns: 1fr; } .hero-h1 { font-size: 22px; } .hero-stats { display: grid; grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 700px) { .nav-right .status-indicator { display: none; } }
+    @media (max-width: 700px) { .nav-right .status-indicator { display: none; } #refresh-area { display: none !important; } }
   </style>
   <script defer src="https://umami.nettradar.no/script.js" data-website-id="1c7c3c7e-4456-4d21-8837-d4dab429f5ab"></script>
 </head>
@@ -268,7 +268,12 @@
   <span style="flex:1"></span>
   <div class="nav-right">
     <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE RIS</span></span>
-    <span id="nav-clock">--:--:--</span>
+    <span id="refresh-area" style="display:flex;align-items:center;gap:5px">
+      <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">--:--</span>
+      <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--dimmer);display:flex;align-items:center" aria-label="Oppdater siden nå">
+        <svg id="refresh-icon" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2A6 6 0 1 0 12 6.5"/><polyline points="9 0 12 2 10 5"/></svg>
+      </button>
+    </span>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Bytt til lys modus">
       <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="3.2"/><line x1="8" y1="1" x2="8" y2="2.5"/><line x1="8" y1="13.5" x2="8" y2="15"/><line x1="1" y1="8" x2="2.5" y2="8"/><line x1="13.5" y1="8" x2="15" y2="8"/><line x1="3.34" y1="3.34" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="12.66" y2="12.66"/><line x1="3.34" y1="12.66" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="12.66" y2="3.34"/></svg>
       <svg class="theme-icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="#2d5082" stroke="#2d5082" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -339,14 +344,12 @@
   <div class="asn-grid" id="asn-grid">
     <div style="grid-column:1/-1;padding:16px 0;color:var(--dim);font-size:13px">Kobler til…</div>
   </div>
-  <p class="asn-grid-footer">Stille ASN-er har ikke sendt BGP UPDATE/WITHDRAW i denne sesjonen. Dette er normalt for stabile nett — BGP sender bare meldinger når noe endrer seg.</p>
 </div>
 
 <!-- FLAGGED EVENTS -->
 <div class="section">
   <div class="section-header">
     <span class="section-title">Hendelser flagget siste 24 t</span>
-    <span class="section-sub">siste 24 t</span>
     <span style="flex:1"></span>
     <span id="sig-count" style="font-size:11px;color:var(--dim)">—</span>
   </div>
@@ -384,7 +387,7 @@
   <div class="source-footer-label">Kilder</div>
   <div class="source-footer-items">
     <div><strong>Cloudflare Radar</strong> — BGP-hijack-klassifisering og rutelekkasjer</div>
-    <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW) fra norske ASN-er</div>
+    <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW). Nettradar detekterer hijacks der ikke-norske ASN-er annonserer norske prefikser.</div>
   </div>
 </div>
 </main>
@@ -430,11 +433,21 @@ document.addEventListener('click', e => { if (!document.querySelector('nav.nav')
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
 
 // ── Clock ──────────────────────────────────────────────────────────────────
-function updateClock() {
-  const fmt = window.innerWidth > 480 ? {hour:'2-digit',minute:'2-digit',second:'2-digit'} : {hour:'2-digit',minute:'2-digit'};
-  document.getElementById('nav-clock').textContent = new Date().toLocaleTimeString('nb-NO', fmt);
+// ── Refresh ────────────────────────────────────────────────────────────────
+function flashRefresh() {
+  const icon = document.getElementById('refresh-icon');
+  const btn = document.getElementById('refresh-btn');
+  if (!icon || !btn) return;
+  btn.style.color = 'var(--text)';
+  icon.style.animation = 'spin 0.5s linear';
+  icon.style.transformOrigin = 'center';
+  icon.addEventListener('animationend', () => { icon.style.animation = ''; btn.style.color = 'var(--dimmer)'; }, { once: true });
 }
-setInterval(updateClock, 1000); updateClock();
+function markUpdated() {
+  const el = document.getElementById('refresh-cd');
+  if (el) el.textContent = new Date().toLocaleTimeString('nb-NO', {hour:'2-digit', minute:'2-digit'});
+}
+function triggerRefresh() { flashRefresh(); connect(); }
 
 // ── Details chevron ────────────────────────────────────────────────────────
 document.getElementById('raw-details').addEventListener('toggle', function() {
@@ -630,7 +643,7 @@ function renderSignificant() {
   if (countEl) countEl.textContent = `${rows.length} flagget`;
 
   if (!rows.length) {
-    table.innerHTML = '<div class="sig-empty">Ingen flaggede hendelser siste 24 t</div>';
+    table.innerHTML = '<div class="sig-empty">Ingen flaggede hendelser</div>';
     return;
   }
   table.innerHTML = rows.map(e => {
@@ -768,14 +781,18 @@ function applySnapshot(data) {
 setInterval(() => { updateRateStats(); renderSignificant(); }, 30000);
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
+let ws = null;
 function connect() {
+  if (ws) { ws.onclose = null; ws.close(); }
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+  ws = new WebSocket(`${proto}://${location.host}/ws`);
   ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
   ws.onmessage = ev => {
     const msg = JSON.parse(ev.data);
     if (msg.type === 'state_snapshot') {
       applySnapshot(msg.data);
+      saveSnapshot(msg.data);
+      markUpdated();
     } else if (msg.type === 'bgp_event') {
       const e = msg.data;
       if (!e.asn_name && e.matched_no_asns && e.matched_no_asns.length) e.asn_name = noAsns[e.matched_no_asns[0]] || null;
@@ -791,12 +808,26 @@ function connect() {
       if (lEl) { lEl.textContent = lc; lEl.style.color = lc > 0 ? 'var(--amber)' : 'var(--dimmer)'; }
       renderAsnGrid();
       renderSignificant();
+      markUpdated();
     }
   };
   ws.onclose = () => { document.getElementById('ripe-dot').classList.remove('live'); setTimeout(connect, 3000); };
   ws.onerror = () => ws.close();
 }
 
+function saveSnapshot(data) {
+  try { sessionStorage.setItem('nt-snapshot', JSON.stringify({ ts: Date.now(), data })); } catch(_) {}
+}
+function restoreSnapshot() {
+  try {
+    const raw = sessionStorage.getItem('nt-snapshot');
+    if (!raw) return;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts > 120000) return;
+    applySnapshot(data);
+  } catch(_) {}
+}
+restoreSnapshot();
 restoreFromCache();
 connect();
 </script>
