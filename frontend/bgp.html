@@ -155,9 +155,6 @@
     .asn-card.asn-silent { border-color: rgba(255,255,255,.035); }
     [data-theme="light"] .asn-card.asn-silent { border-color: rgba(15,15,26,.05); }
     .asn-card.asn-silent .asn-name { color: var(--dim); }
-    .asn-stable { display: flex; flex-direction: column; align-items: center; padding: 6px 0; gap: 3px; }
-    .stable-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 1.6px; color: var(--dimmer); }
-    .stable-sub { font-size: 11px; color: var(--dimmer); }
     .asn-grid-footer { font-size: 11.5px; color: var(--dimmer); margin: 12px 0 0; line-height: 1.5; }
 
     /* SIGNIFICANT TABLE */
@@ -317,11 +314,11 @@
       <div class="stat-num" id="stat-wd-rate">—</div>
     </div>
     <div class="stat-block">
-      <div class="stat-label">Hijacks 24 t</div>
+      <div class="stat-label">Hijack 24 t</div>
       <div class="stat-num" id="stat-hijacks-24" style="color:var(--dimmer)">—</div>
     </div>
     <div class="stat-block">
-      <div class="stat-label">Route leaks 24 t</div>
+      <div class="stat-label">Rutelekk 24 t</div>
       <div class="stat-num" id="stat-leaks-24" style="color:var(--dimmer)">—</div>
     </div>
     <div class="stat-block">
@@ -559,7 +556,7 @@ function getFlaggedMap() {
   });
   (radarData.route_leaks || []).forEach(l => {
     if (!flagged[l.origin_asn]) flagged[l.origin_asn] = [];
-    flagged[l.origin_asn].push({ type: 'ROUTE LEAK', source: 'Cloudflare', detail: `Leak via AS${l.peer_asn} · ${l.prefix}` });
+    flagged[l.origin_asn].push({ type: 'RUTELEKK', source: 'Cloudflare', detail: `Leak via AS${l.peer_asn} · ${l.prefix}` });
   });
   return flagged;
 }
@@ -601,7 +598,6 @@ function renderAsnGrid() {
     const isSilent = !isFlagged && s.updates === 0 && s.withdraws === 0;
     const sparkColor = isFlagged ? 'var(--red)' : 'var(--blue)';
     const prefixCount = s.prefixes ? s.prefixes.size : 0;
-    const stableSub = s.lastSeen ? `Siste UPDATE: ${timeAgo(s.lastSeen)}` : 'Ingen endringer denne sesjonen';
     return `
       <div class="asn-card${isSilent ? ' asn-silent' : ''}">
         ${isFlagged ? '<div class="asn-stripe"></div>' : ''}
@@ -612,18 +608,11 @@ function renderAsnGrid() {
         </div>
         <div class="asn-name">${name}</div>
         ${sparkSvg(s.sparkData || new Array(30).fill(0), sparkColor, (s.updates + s.withdraws) > 0)}
-        ${isSilent ? `
-          <div class="asn-stable">
-            <span class="stable-label">STABIL</span>
-            <span class="stable-sub">${stableSub}</span>
-          </div>
-        ` : `
-          <div class="asn-metrics">
-            <div><div class="m-label">Annons</div><div class="m-val">${s.updates.toLocaleString('nb-NO')}</div></div>
-            <div><div class="m-label">Withdraw</div><div class="m-val" style="${s.withdraws>0?'color:var(--amber)':''}">${s.withdraws.toLocaleString('nb-NO')}</div></div>
-            <div><div class="m-label">Prefikser</div><div class="m-val">${prefixCount > 0 ? prefixCount.toLocaleString('nb-NO') : '—'}</div></div>
-          </div>
-        `}
+        <div class="asn-metrics">
+          <div><div class="m-label">Annons</div><div class="m-val" style="${isSilent ? 'color:var(--dimmer)' : ''}">${isSilent ? '–' : s.updates.toLocaleString('nb-NO')}</div></div>
+          <div><div class="m-label">Tilbaketrekk</div><div class="m-val" style="${isSilent ? 'color:var(--dimmer)' : s.withdraws>0 ? 'color:var(--amber)' : ''}">${isSilent ? '–' : s.withdraws.toLocaleString('nb-NO')}</div></div>
+          <div><div class="m-label">Prefikser</div><div class="m-val" style="${isSilent ? 'color:var(--dimmer)' : ''}">${isSilent ? '–' : prefixCount > 0 ? prefixCount.toLocaleString('nb-NO') : '—'}</div></div>
+        </div>
         ${isFlagged ? `<div class="flag-detail">${flags.map(f => `<div><strong>${f.source}:</strong> ${f.detail}</div>`).join('')}</div>` : ''}
       </div>`;
   }).join('');
@@ -640,7 +629,7 @@ function renderSignificant() {
     detail: `${h.prefix} · normalt AS${h.victim_asn}`,
   }));
   const leaks = (radarData.route_leaks || []).map(l => ({
-    ts: l.detected_at, severity: 'medium', label: 'ROUTE LEAK', source: 'Cloudflare',
+    ts: l.detected_at, severity: 'medium', label: 'RUTELEKK', source: 'Cloudflare',
     headline: `Rutelekkasje via AS${l.leak_asn}`,
     detail: `${l.prefix} · opprinnelse AS${l.origin_asn}`,
   }));

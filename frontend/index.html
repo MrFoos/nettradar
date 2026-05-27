@@ -588,7 +588,7 @@ function renderHendelser(alerts, outages, anomalies, noAsns) {
   const secBody = document.getElementById('quad-sec-body');
   if (secBody) {
     if (!alerts.length) {
-      secBody.innerHTML = emptyQuad('Ingen hijacks eller route leaks flagget siste 24 t.');
+      secBody.innerHTML = emptyQuad('Ingen hijacks eller rutelekk flagget siste 24 t.');
     } else {
       const items = alerts.slice(0, 3).map(a => {
         const isH = a.kind === 'hijack';
@@ -599,7 +599,7 @@ function renderHendelser(alerts, outages, anomalies, noAsns) {
         return `<div class="col-item-card">
           <div style="position:absolute;top:0;bottom:0;left:0;width:2px;background:${c}"></div>
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:${c};padding:2px 6px;background:${cBg};border-radius:3px">${isH ? '⚠ HIJACK' : '↯ ROUTE LEAK'}</span>
+            <span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:${c};padding:2px 6px;background:${cBg};border-radius:3px">${isH ? '⚠ HIJACK' : '↯ RUTELEKK'}</span>
             <span style="flex:1"></span>
             <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)">${timeAgo(a.detected_at)}</span>
           </div>
