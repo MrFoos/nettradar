@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 FALLBACK_NO_ASNS: dict[int, str] = {
     2119:   "Telenor Norge",
     16175:  "Lyse Tele",
-    8222:   "Altibox",
     29695:  "Altibox / Lyse Fiber",
     39029:  "NextGenTel",
     31027:  "GreenHost",
@@ -21,7 +20,7 @@ FALLBACK_NO_ASNS: dict[int, str] = {
     56655:  "Telia Norge (tidl. TDC Norge)",
     3292:   "Telia (DK)",
     12929:  "Bane NOR (tidl. BaneTele)",
-    51829:  "Bane NOR",
+    216448: "Bane NOR",
     224:    "Sikt (Uninett)",
 }
 
@@ -37,7 +36,7 @@ NAME_OVERRIDES: dict[int, str] = {
     56655:  "Telia Norge (tidl. TDC Norge)",
     3292:   "Telia (DK)",
     12929:  "Bane NOR (tidl. BaneTele)",
-    51829:  "Bane NOR",
+    216448: "Bane NOR",
     29695:  "Altibox / Lyse Fiber",
     224:    "Sikt (Uninett)",
 }
@@ -52,10 +51,12 @@ INCLUDED_TYPES = {
 
 # Globale aktører som feilaktig dukker opp i PeeringDB country=NO-søket.
 EXCLUDED_ASNS: set[int] = {
+    5418,   # Nerdnet (nederlandsk, nerdnet.nl) — feilaktig country=NO i PeeringDB
     6667,   # Eunet Finland (historisk, finsk)
     1280,   # ISC — Internet Systems Consortium (USA)
     6695,   # DE-CIX Frankfurt Route Servers (tysk)
     7500,   # M-ROOT DNS Server (global)
+    8222,   # noris network AG (tysk, München) — feilaktig koblet til Altibox
     20144,  # l.root-servers.net (global)
     20766,  # Association Gitoyen (fransk)
     22548,  # NIC.BR (brasiliansk)
