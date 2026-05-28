@@ -409,7 +409,7 @@ function fmtLayerDelta(label, delta, tagColor, tagBg) {
   const tag = `<span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:1px;color:${tagColor};background:${tagBg};padding:2px 5px;border-radius:3px">${label}</span>`;
   if (delta === null) return tag + ` <span style="color:var(--dimmer)">—</span>`;
   const color = delta > 0 ? 'var(--red)' : 'var(--green)';
-  const statusText = delta > 0 ? 'over snitt' : 'under snitt';
+  const statusText = delta > 0 ? 'over snittet' : 'under snittet';
   return `${tag} <span style="color:${color};font-weight:600">${delta >= 0 ? '+' : ''}${delta}%</span> <span style="color:var(--dim);font-weight:400">${statusText}</span>`;
 }
 
@@ -514,13 +514,17 @@ function renderChart() {
   const yCenterNeg = -(padT + iH / 2);
   const yTitle = `<text transform="rotate(-90)" x="${yCenterNeg.toFixed(0)}" y="12" text-anchor="middle" font-size="10.5" font-weight="600" font-family="JetBrains Mono,monospace" letter-spacing="1.4" fill="${dim}">INTENSITET (0–1)</text>`;
 
+  const firstTs = new Date(src[0].timestamp).getTime();
+  const lastTs  = new Date(src[n - 1].timestamp).getTime();
+  const tSpan   = lastTs - firstTs || 1;
+  const xByTime = ts => padL + ((ts - firstTs) / tSpan) * iW;
+  const t0 = new Date(firstTs); t0.setMinutes(0, 0, 0, 0);
+  const hRem = t0.getHours() % 3; if (hRem !== 0) t0.setHours(t0.getHours() + (3 - hRem));
   const xTicks = [];
-  for (let s = 0; s <= 8; s++) {
-    const idx = Math.round((s / 8) * (n - 1));
-    if (idx >= 0 && idx < n) {
-      const hr = String(new Date(src[idx].timestamp).getHours()).padStart(2, '0');
-      xTicks.push(`<text x="${xa(idx, n).toFixed(1)}" y="${(padT + iH + 17).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${hr}</text>`);
-    }
+  for (let t = t0.getTime(); t <= lastTs; t += 3 * 3600_000) {
+    if (t < firstTs) continue;
+    const hr = String(new Date(t).getHours()).padStart(2, '0');
+    xTicks.push(`<text x="${xByTime(t).toFixed(1)}" y="${(padT + iH + 17).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${hr}</text>`);
   }
   const xTitle = `<text x="${(padL + iW / 2).toFixed(1)}" y="${H - 4}" text-anchor="middle" font-size="10.5" font-weight="600" font-family="JetBrains Mono,monospace" letter-spacing="1.4" fill="${dim}">TIME (24 T)</text>`;
 
@@ -594,9 +598,13 @@ function applySnapshot(data) {
 
   const radar = data.radar || {};
 
-  // Timeseries
-  chartL7 = radar.attack_timeseries || [];
-  chartL3 = radar.layer3_timeseries || [];
+  // Timeseries — normaliser mot kombinert max hvis verdier > 1.0
+  const raw7 = radar.attack_timeseries || [];
+  const raw3 = radar.layer3_timeseries || [];
+  const allVals = [...raw7.map(p => p.value), ...raw3.map(p => p.value)];
+  const maxVal = allVals.length ? Math.max(...allVals) : 1;
+  chartL7 = maxVal > 1 ? raw7.map(p => ({...p, value: p.value / maxVal})) : raw7;
+  chartL3 = maxVal > 1 ? raw3.map(p => ({...p, value: p.value / maxVal})) : raw3;
   renderChart();
 
   // Compute stats from timeseries
