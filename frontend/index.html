@@ -270,6 +270,26 @@
     }
     #loading-overlay.hidden { opacity: 0; pointer-events: none; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    #refresh-btn {
+      background: none;
+      border: 0;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--dim);
+      display: flex;
+      align-items: center;
+      border-radius: 4px;
+      transition: color 140ms ease, background 140ms ease;
+    }
+    #refresh-btn:hover { color: var(--text); background: var(--card); }
+    #refresh-btn:focus-visible {
+      color: var(--text);
+      outline: 2px solid var(--text);
+      outline-offset: 2px;
+    }
+    #refresh-btn:active { transform: translateY(1px); }
+    #refresh-icon { transform-origin: center; }
+    #refresh-icon.is-spinning { animation: spin 700ms cubic-bezier(.4,.0,.2,1); }
     .spinner {
       width: 28px; height: 28px; border-radius: 50%;
       border: 2px solid var(--border); border-top-color: var(--accent);
@@ -306,9 +326,9 @@
     <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
     <span class="status-indicator" id="mobile-live-ind" style="display:none"><span class="status-dot" id="mobile-live-dot"></span><span style="font-size:10.5px;letter-spacing:.8px">LIVE</span></span>
     <span id="refresh-area" style="display:flex;align-items:center;gap:5px">
-      <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">--:--</span>
-      <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--dimmer);display:flex;align-items:center" aria-label="Oppdater dashboardet nå">
-        <svg id="refresh-icon" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2A6 6 0 1 0 12 6.5"/><polyline points="9 0 12 2 10 5"/></svg>
+      <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">--:--</span>
+      <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" aria-label="Oppdater dashboardet nå">
+        <svg id="refresh-icon" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 2A6 6 0 1 0 12 6.5"/><polyline points="9 0 12 2 10 5"/></svg>
       </button>
     </span>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Bytt til lys modus">
@@ -474,21 +494,22 @@ document.addEventListener('click', function(e) { if (!document.querySelector('na
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeNav(); });
 
 // ── Refresh ────────────────────────────────────────────────────────────────
+let lastSpinAt = 0;
 function flashRefresh() {
   const icon = document.getElementById('refresh-icon');
-  const btn = document.getElementById('refresh-btn');
-  if (!icon || !btn) return;
-  btn.style.color = 'var(--text)';
-  icon.style.animation = 'spin 0.5s linear';
-  icon.style.transformOrigin = 'center';
-  icon.addEventListener('animationend', () => {
-    icon.style.animation = '';
-    btn.style.color = 'var(--dimmer)';
-  }, { once: true });
+  if (!icon) return;
+  icon.classList.remove('is-spinning');
+  void icon.offsetWidth;
+  icon.classList.add('is-spinning');
 }
+document.getElementById('refresh-icon')?.addEventListener('animationend', (e) => {
+  if (e.animationName === 'spin') e.currentTarget.classList.remove('is-spinning');
+});
 function markUpdated() {
   const el = document.getElementById('refresh-cd');
   if (el) el.textContent = new Date().toLocaleTimeString('nb-NO', {hour:'2-digit', minute:'2-digit'});
+  const now = Date.now();
+  if (now - lastSpinAt > 10_000) { lastSpinAt = now; flashRefresh(); }
 }
 function triggerRefresh() {
   flashRefresh();

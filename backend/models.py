@@ -83,6 +83,7 @@ class RadarState(BaseModel):
     route_leaks: list[RouteLeak] = []
     anomalies: list[TrafficAnomaly] = []
     attack_origins: list[AttackOrigin] = []
+    attack_origins_l3: list[AttackOrigin] = []
     attack_as_origins: list[AttackASOrigin] = []
     active_outages: list[OutageEvent] = []
     traffic_anomaly_events: list[TrafficAnomalyEvent] = []

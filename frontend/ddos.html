@@ -36,6 +36,26 @@
     a { color: inherit; text-decoration: none; }
     @keyframes c-pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
     @keyframes spin { to { transform: rotate(360deg); } }
+    #refresh-btn {
+      background: none;
+      border: 0;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--dim);
+      display: flex;
+      align-items: center;
+      border-radius: 4px;
+      transition: color 140ms ease, background 140ms ease;
+    }
+    #refresh-btn:hover { color: var(--text); background: var(--card); }
+    #refresh-btn:focus-visible {
+      color: var(--text);
+      outline: 2px solid var(--text);
+      outline-offset: 2px;
+    }
+    #refresh-btn:active { transform: translateY(1px); }
+    #refresh-icon { transform-origin: center; }
+    #refresh-icon.is-spinning { animation: spin 700ms cubic-bezier(.4,.0,.2,1); }
 
     /* NAV */
     .nav {
@@ -203,6 +223,66 @@
       .section-header #ddos-delta { width: 100%; margin-top: 2px; }
       .section-header > span[style*="flex:1"] { display: none; }
     }
+    .layer-toggle {
+      display: inline-flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .layer-btn {
+      font: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      background: transparent;
+      color: var(--dim);
+      border: 0;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: -.1px;
+      transition: background 120ms ease, color 120ms ease;
+    }
+    .layer-btn:hover { color: var(--text); }
+    .layer-btn.is-active {
+      background: var(--card-elevated);
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px var(--border);
+    }
+    .layer-note {
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--dim);
+      border-top: 1px solid var(--border);
+      padding: 12px 14px 0;
+      margin-top: 8px;
+      padding-bottom: 14px;
+    }
+    .layer-note strong { color: var(--text); font-weight: 600; }
+    .term { display: inline-flex; align-items: center; gap: 4px; }
+    .term-info {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1px solid var(--border); color: var(--dim);
+      font-size: 9px; font-weight: 700; cursor: help;
+      background: transparent; padding: 0; user-select: none; flex-shrink: 0;
+    }
+    .term-info:hover, .term-info:focus-visible { color: var(--text); border-color: var(--text); outline: none; }
+    .term-tooltip { display: none; }
+    #nt-tooltip {
+      position: fixed; z-index: 9999;
+      width: 240px; max-width: calc(100vw - 32px);
+      padding: 10px 12px;
+      background: var(--card-elevated); border: 1px solid var(--border); border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.32);
+      font-size: 12px; font-weight: 400; line-height: 1.5; color: var(--text);
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 140ms ease, visibility 0ms 140ms;
+    }
+    #nt-tooltip.visible { opacity: 1; visibility: visible; transition-delay: 0ms; pointer-events: auto; }
+    #nt-tooltip a { color: var(--blue, var(--accent)); text-decoration: none; font-weight: 500; }
+    #nt-tooltip a:hover { text-decoration: underline; }
     .skip-link {
       position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
     }
@@ -241,9 +321,9 @@
     <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
     <span class="status-indicator" id="mobile-live-ind" style="display:none"><span class="status-dot" id="mobile-live-dot"></span><span style="font-size:10.5px;letter-spacing:.8px">LIVE</span></span>
     <span id="refresh-area" style="display:flex;align-items:center;gap:5px">
-      <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">--:--</span>
-      <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--dimmer);display:flex;align-items:center" aria-label="Oppdater siden nå">
-        <svg id="refresh-icon" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2A6 6 0 1 0 12 6.5"/><polyline points="9 0 12 2 10 5"/></svg>
+      <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">--:--</span>
+      <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" aria-label="Oppdater siden nå">
+        <svg id="refresh-icon" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 2A6 6 0 1 0 12 6.5"/><polyline points="9 0 12 2 10 5"/></svg>
       </button>
     </span>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Bytt til lys modus">
@@ -299,7 +379,16 @@
       </div>
     </div>
     <div>
-      <div class="stat-label">Unike Kilde-AS</div>
+      <div class="stat-label">
+        <span class="term">
+          Unike Kilde-AS
+          <button type="button" class="term-info" aria-describedby="tt-kilde-as-stat">?</button>
+          <span class="term-tooltip" role="tooltip" id="tt-kilde-as-stat">
+            Nettverket (ASN) angrepstrafikken kommer fra. Kan avvike fra der angriperen sitter — botnetter sender via kompromitterte tredjeparter.
+            <a href="/om#begreper">Mer →</a>
+          </span>
+        </span>
+      </div>
       <div class="stat-val-row"><span class="stat-num" id="stat-sources">—</span></div>
     </div>
   </div>
@@ -328,12 +417,32 @@
 
 <!-- KILDE-AS + OPPRINNELSE -->
 <div class="section">
-  <div class="grid-equal">
+  <div class="section-header">
+    <span class="section-title">Hvor kommer angrepene fra</span>
+    <span class="section-sub" id="origins-sub">applikasjonslag (L7)</span>
+    <span style="flex:1"></span>
+    <div class="layer-toggle" role="tablist" aria-label="Velg angrepslag">
+      <button class="layer-btn is-active" data-layer="l7" role="tab" aria-selected="true">L7 · App</button>
+      <button class="layer-btn" data-layer="l3" role="tab" aria-selected="false">L3/4 · Volum</button>
+    </div>
+  </div>
+
+  <!-- L7-visning: Kilde-AS + Opprinnelse side ved side -->
+  <div class="grid-equal" id="layer-l7-view">
     <!-- KILDE-AS -->
     <div class="card" style="display:flex;flex-direction:column">
       <div class="card-header">
-        <span class="card-title">Kilde-AS</span>
-        <span class="card-sub">andel av angrep</span>
+        <span class="card-title">
+          <span class="term">
+            Kilde-AS
+            <button type="button" class="term-info" aria-describedby="tt-kilde-as">?</button>
+            <span class="term-tooltip" role="tooltip" id="tt-kilde-as">
+              Nettverket (ASN) angrepstrafikken kommer fra. Kan avvike fra der angriperen sitter — botnetter sender via kompromitterte tredjeparter.
+              <a href="/om#begreper">Mer →</a>
+            </span>
+          </span>
+        </span>
+        <span class="card-sub">andel av L7-angrep</span>
         <span style="flex:1"></span>
         <span id="kilde-count" class="mono" style="font-size:11px;color:var(--dim)"></span>
       </div>
@@ -341,7 +450,16 @@
         <table class="data-table">
           <thead style="position:sticky;top:0;background:var(--card);z-index:1">
             <tr>
-              <th style="width:90px">ASN</th>
+              <th style="width:90px">
+                <span class="term">
+                  ASN
+                  <button type="button" class="term-info" aria-describedby="tt-asn-kilde">?</button>
+                  <span class="term-tooltip" role="tooltip" id="tt-asn-kilde">
+                    Autonomt system-nummer — unik ID for et nettverk på internett. F.eks. AS2119 = Telenor.
+                    <a href="/om#begreper">Mer →</a>
+                  </span>
+                </span>
+              </th>
               <th>Operatør</th>
               <th class="col-bar">Andel</th>
               <th class="text-right" style="width:60px">%</th>
@@ -354,11 +472,20 @@
       </div>
     </div>
 
-    <!-- OPPRINNELSE -->
+    <!-- OPPRINNELSE L7 -->
     <div class="card" style="display:flex;flex-direction:column">
       <div class="card-header">
-        <span class="card-title">Opprinnelse</span>
-        <span class="card-sub">kilde-IP per land</span>
+        <span class="card-title">
+          <span class="term">
+            Opprinnelse
+            <button type="button" class="term-info" aria-describedby="tt-opprinnelse">?</button>
+            <span class="term-tooltip" role="tooltip" id="tt-opprinnelse">
+              Landet kilde-IP-en er registrert i. Kan avvike fra Kilde-AS dersom nettverket har infrastruktur i flere land.
+              <a href="/om#begreper">Mer →</a>
+            </span>
+          </span>
+        </span>
+        <span class="card-sub">kilde-IP per land · L7</span>
         <span style="flex:1"></span>
         <span id="origin-count" class="mono" style="font-size:11px;color:var(--dim)"></span>
       </div>
@@ -376,6 +503,38 @@
             <tr><td colspan="4" class="empty-state">Laster…</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- L3/4-visning: kun Opprinnelse, full bredde -->
+  <div id="layer-l3-view" style="display:none">
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="card-header">
+        <span class="card-title">Opprinnelse</span>
+        <span class="card-sub">kilde-IP per land · L3/4</span>
+        <span style="flex:1"></span>
+        <span id="origin-l3-count" class="mono" style="font-size:11px;color:var(--dim)"></span>
+      </div>
+      <div>
+        <table class="data-table" id="origin-l3-table">
+          <thead style="position:sticky;top:0;background:var(--card);z-index:1">
+            <tr>
+              <th style="width:28px"></th>
+              <th>Land</th>
+              <th class="col-bar">Andel</th>
+              <th class="text-right" style="width:56px">%</th>
+            </tr>
+          </thead>
+          <tbody id="origin-l3-tbody">
+            <tr><td colspan="4" class="empty-state">Laster…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="layer-note">
+        <strong>Hvorfor ingen Kilde-AS?</strong> L3/4-angrep (SYN-flood, UDP-amplifikasjon, reflection)
+        bruker som regel forfalskede kilde-IP-er. ASN-tilskrivning blir derfor ikke pålitelig, og
+        Cloudflare publiserer kun land-nivå basert på hvilke edge-noder som mottok trafikken.
       </div>
     </div>
   </div>
@@ -456,18 +615,22 @@ document.addEventListener('click', function(e) { if (!document.querySelector('na
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeNav(); });
 
 // ── Refresh ────────────────────────────────────────────────────────────────
+let lastSpinAt = 0;
 function flashRefresh() {
   const icon = document.getElementById('refresh-icon');
-  const btn = document.getElementById('refresh-btn');
-  if (!icon || !btn) return;
-  btn.style.color = 'var(--text)';
-  icon.style.animation = 'spin 0.5s linear';
-  icon.style.transformOrigin = 'center';
-  icon.addEventListener('animationend', () => { icon.style.animation = ''; btn.style.color = 'var(--dimmer)'; }, { once: true });
+  if (!icon) return;
+  icon.classList.remove('is-spinning');
+  void icon.offsetWidth;
+  icon.classList.add('is-spinning');
 }
+document.getElementById('refresh-icon')?.addEventListener('animationend', (e) => {
+  if (e.animationName === 'spin') e.currentTarget.classList.remove('is-spinning');
+});
 function markUpdated() {
   const el = document.getElementById('refresh-cd');
   if (el) el.textContent = new Date().toLocaleTimeString('nb-NO', {hour:'2-digit', minute:'2-digit'});
+  const now = Date.now();
+  if (now - lastSpinAt > 10_000) { lastSpinAt = now; flashRefresh(); }
 }
 function triggerRefresh() { flashRefresh(); connect(); }
 
@@ -561,11 +724,9 @@ function renderKildeAs(list) {
   if (countEl) countEl.textContent = list.length + ' AS';
 }
 
-function renderOriginTable(origins) {
-  const tbody = document.getElementById('origin-tbody');
-  const countEl = document.getElementById('origin-count');
+function renderOriginsTable(tbody, countEl, origins, emptyMsg) {
   if (!origins || !origins.length) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Ingen data</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="4" class="empty-state">${emptyMsg || 'Ingen data'}</td></tr>`;
     if (countEl) countEl.textContent = '';
     return;
   }
@@ -579,6 +740,49 @@ function renderOriginTable(origins) {
     </tr>`).join('');
   if (countEl) countEl.textContent = origins.length + ' land';
 }
+
+function renderOriginTable(origins) {
+  const tbody = document.getElementById('origin-tbody');
+  const countEl = document.getElementById('origin-count');
+  renderOriginsTable(tbody, countEl, origins, 'Ingen data');
+}
+
+// ── Layer toggle ───────────────────────────────────────────────────────────
+let currentLayer = localStorage.getItem('ddos-layer') || 'l7';
+
+(function initLayerToggle() {
+  document.querySelectorAll('.layer-btn').forEach(btn => {
+    if (btn.dataset.layer === currentLayer) {
+      btn.classList.add('is-active');
+      btn.setAttribute('aria-selected', 'true');
+    } else {
+      btn.classList.remove('is-active');
+      btn.setAttribute('aria-selected', 'false');
+    }
+  });
+  document.getElementById('layer-l7-view').style.display = currentLayer === 'l7' ? '' : 'none';
+  document.getElementById('layer-l3-view').style.display = currentLayer === 'l3' ? '' : 'none';
+  const sub = document.getElementById('origins-sub');
+  if (sub) sub.textContent = currentLayer === 'l7' ? 'applikasjonslag (L7)' : 'nettverks-/transportlag (L3/4)';
+})();
+
+document.querySelectorAll('.layer-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const layer = btn.dataset.layer;
+    if (layer === currentLayer) return;
+    currentLayer = layer;
+    localStorage.setItem('ddos-layer', currentLayer);
+    document.querySelectorAll('.layer-btn').forEach(b => {
+      const active = b.dataset.layer === layer;
+      b.classList.toggle('is-active', active);
+      b.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    document.getElementById('layer-l7-view').style.display = layer === 'l7' ? '' : 'none';
+    document.getElementById('layer-l3-view').style.display = layer === 'l3' ? '' : 'none';
+    const sub = document.getElementById('origins-sub');
+    if (sub) sub.textContent = layer === 'l7' ? 'applikasjonslag (L7)' : 'nettverks-/transportlag (L3/4)';
+  });
+});
 
 // ── Mobile live indicator ──────────────────────────────────────────────────
 function updateMobileLive() {
@@ -642,6 +846,12 @@ function applySnapshot(data) {
   renderKildeAs(asOrigins);
   renderOriginTable(radar.attack_origins || []);
 
+  // L3/4 origins
+  const originsL3 = radar.attack_origins_l3 || [];
+  const tbodyL3 = document.getElementById('origin-l3-tbody');
+  const countL3 = document.getElementById('origin-l3-count');
+  renderOriginsTable(tbodyL3, countL3, originsL3, 'Ingen L3/4-data tilgjengelig.');
+
   // Updated timestamp
   document.getElementById('chart-updated').textContent = `oppdatert ${new Date().toLocaleTimeString('nb-NO', {hour:'2-digit',minute:'2-digit'})}`;
 
@@ -686,6 +896,48 @@ function restoreSnapshot() {
 }
 restoreSnapshot();
 connect();
+
+// ── Tooltip portal ─────────────────────────────────────────────────────────
+(function() {
+  const portal = document.createElement('div');
+  portal.id = 'nt-tooltip';
+  portal.setAttribute('role', 'tooltip');
+  document.body.appendChild(portal);
+  let hideTimer = null;
+
+  function showTooltip(btn) {
+    const src = btn.nextElementSibling;
+    if (!src || !src.classList.contains('term-tooltip')) return;
+    clearTimeout(hideTimer);
+    portal.innerHTML = src.innerHTML;
+    portal.classList.add('visible');
+    const rect = btn.getBoundingClientRect();
+    const pw = Math.min(240, window.innerWidth - 32);
+    portal.style.width = pw + 'px';
+    const ph = portal.offsetHeight;
+    let left = rect.left;
+    let top = rect.top - ph - 6;
+    if (top < 8) top = rect.bottom + 6;
+    if (left + pw > window.innerWidth - 16) left = window.innerWidth - pw - 16;
+    if (left < 16) left = 16;
+    portal.style.left = left + 'px';
+    portal.style.top = top + 'px';
+  }
+
+  function scheduleHide() { hideTimer = setTimeout(() => portal.classList.remove('visible'), 150); }
+
+  document.addEventListener('mouseover', e => {
+    const btn = e.target.closest('.term-info');
+    if (btn) { showTooltip(btn); return; }
+    if (e.target.closest('#nt-tooltip')) { clearTimeout(hideTimer); return; }
+  });
+  document.addEventListener('mouseout', e => {
+    if (e.target.closest('.term-info') || e.target.closest('#nt-tooltip')) scheduleHide();
+  });
+  document.addEventListener('focusin', e => { const btn = e.target.closest('.term-info'); if (btn) showTooltip(btn); });
+  document.addEventListener('focusout', e => { if (!e.relatedTarget || !e.relatedTarget.closest('#nt-tooltip')) scheduleHide(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { clearTimeout(hideTimer); portal.classList.remove('visible'); } });
+})();
 </script>
 </body>
 </html>

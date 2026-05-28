@@ -78,6 +78,10 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
         session, "/attacks/layer7/top/locations/origin",
         {"location": "NO", "limit": "10", "dateRange": "1d"}
     )
+    origins_l3_result = await _get(
+        session, "/attacks/layer3/top/locations/origin",
+        {"location": "NO", "limit": "10", "dateRange": "1d"}
+    )
     as_origins_result = await _get(
         session, "/attacks/layer7/top/ases/origin",
         {"location": "NO", "limit": "15", "dateRange": "1d"}
@@ -188,6 +192,15 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
                 percentage=float(row.get("value", 0)),
             ))
 
+    origins_l3: list[AttackOrigin] = []
+    if origins_l3_result:
+        for row in origins_l3_result.get("top_0", []):
+            origins_l3.append(AttackOrigin(
+                country_code=row.get("originCountryAlpha2", ""),
+                country_name=row.get("originCountryName", ""),
+                percentage=float(row.get("value", 0)),
+            ))
+
     as_origins: list[AttackASOrigin] = []
     if as_origins_result:
         for row in as_origins_result.get("top_0", []):
@@ -268,6 +281,7 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
         route_leaks=leaks,
         anomalies=anomalies,
         attack_origins=origins,
+        attack_origins_l3=origins_l3,
         attack_as_origins=as_origins,
         active_outages=active_outages,
         traffic_anomaly_events=traffic_anomaly_events,

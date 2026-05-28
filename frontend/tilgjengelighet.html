@@ -36,6 +36,26 @@
     a { color: inherit; text-decoration: none; }
     @keyframes c-pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
     @keyframes spin { to { transform: rotate(360deg); } }
+    #refresh-btn {
+      background: none;
+      border: 0;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--dim);
+      display: flex;
+      align-items: center;
+      border-radius: 4px;
+      transition: color 140ms ease, background 140ms ease;
+    }
+    #refresh-btn:hover { color: var(--text); background: var(--card); }
+    #refresh-btn:focus-visible {
+      color: var(--text);
+      outline: 2px solid var(--text);
+      outline-offset: 2px;
+    }
+    #refresh-btn:active { transform: translateY(1px); }
+    #refresh-icon { transform-origin: center; }
+    #refresh-icon.is-spinning { animation: spin 700ms cubic-bezier(.4,.0,.2,1); }
 
     /* NAV */
     .nav {
@@ -202,6 +222,29 @@
       .section-title { letter-spacing: 0.5px; }
       .section-stat { white-space: nowrap; flex-shrink: 0; }
     }
+    .term { display: inline-flex; align-items: center; gap: 4px; }
+    .term-info {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1px solid var(--border); color: var(--dim);
+      font-size: 9px; font-weight: 700; cursor: help;
+      background: transparent; padding: 0; user-select: none; flex-shrink: 0;
+    }
+    .term-info:hover, .term-info:focus-visible { color: var(--text); border-color: var(--text); outline: none; }
+    .term-tooltip { display: none; }
+    #nt-tooltip {
+      position: fixed; z-index: 9999;
+      width: 240px; max-width: calc(100vw - 32px);
+      padding: 10px 12px;
+      background: var(--card-elevated); border: 1px solid var(--border); border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.32);
+      font-size: 12px; font-weight: 400; line-height: 1.5; color: var(--text);
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 140ms ease, visibility 0ms 140ms;
+    }
+    #nt-tooltip.visible { opacity: 1; visibility: visible; transition-delay: 0ms; pointer-events: auto; }
+    #nt-tooltip a { color: var(--blue, var(--accent)); text-decoration: none; font-weight: 500; }
+    #nt-tooltip a:hover { text-decoration: underline; }
     .skip-link {
       position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
     }
@@ -240,9 +283,9 @@
     <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
     <span class="status-indicator" id="mobile-live-ind" style="display:none"><span class="status-dot" id="mobile-live-dot"></span><span style="font-size:10.5px;letter-spacing:.8px">LIVE</span></span>
     <span id="refresh-area" style="display:flex;align-items:center;gap:5px">
-      <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">--:--</span>
-      <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--dimmer);display:flex;align-items:center" aria-label="Oppdater siden nå">
-        <svg id="refresh-icon" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2A6 6 0 1 0 12 6.5"/><polyline points="9 0 12 2 10 5"/></svg>
+      <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">--:--</span>
+      <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" aria-label="Oppdater siden nå">
+        <svg id="refresh-icon" width="15" height="15" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 2A6 6 0 1 0 12 6.5"/><polyline points="9 0 12 2 10 5"/></svg>
       </button>
     </span>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Bytt til lys modus">
@@ -372,18 +415,22 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
 
 // ── Clock ──────────────────────────────────────────────────────────────────
 // ── Refresh ────────────────────────────────────────────────────────────────
+let lastSpinAt = 0;
 function flashRefresh() {
   const icon = document.getElementById('refresh-icon');
-  const btn = document.getElementById('refresh-btn');
-  if (!icon || !btn) return;
-  btn.style.color = 'var(--text)';
-  icon.style.animation = 'spin 0.5s linear';
-  icon.style.transformOrigin = 'center';
-  icon.addEventListener('animationend', () => { icon.style.animation = ''; btn.style.color = 'var(--dimmer)'; }, { once: true });
+  if (!icon) return;
+  icon.classList.remove('is-spinning');
+  void icon.offsetWidth;
+  icon.classList.add('is-spinning');
 }
+document.getElementById('refresh-icon')?.addEventListener('animationend', (e) => {
+  if (e.animationName === 'spin') e.currentTarget.classList.remove('is-spinning');
+});
 function markUpdated() {
   const el = document.getElementById('refresh-cd');
   if (el) el.textContent = new Date().toLocaleTimeString('nb-NO', {hour:'2-digit', minute:'2-digit'});
+  const now = Date.now();
+  if (now - lastSpinAt > 10_000) { lastSpinAt = now; flashRefresh(); }
 }
 function triggerRefresh() { flashRefresh(); connect(); }
 
@@ -513,7 +560,7 @@ function renderHistorikk(outages, anomalies) {
           <th style="width:110px">Tidspunkt</th>
           <th style="width:130px">Type</th>
           <th>Detalj</th>
-          <th style="width:120px">ASN</th>
+          <th style="width:120px"><span class="term">ASN<button type="button" class="term-info" aria-describedby="tt-asn-hist">?</button><span class="term-tooltip" role="tooltip" id="tt-asn-hist">Autonomt system-nummer — unik ID for et nettverk på internett. F.eks. AS2119 = Telenor. <a href="/om#begreper">Mer →</a></span></span></th>
           <th class="text-right" style="width:100px">Varighet</th>
         </tr></thead>
         <tbody>${all.map(e => {
@@ -632,6 +679,48 @@ function restoreSnapshot() {
 }
 restoreSnapshot();
 connect();
+
+// ── Tooltip portal ─────────────────────────────────────────────────────────
+(function() {
+  const portal = document.createElement('div');
+  portal.id = 'nt-tooltip';
+  portal.setAttribute('role', 'tooltip');
+  document.body.appendChild(portal);
+  let hideTimer = null;
+
+  function showTooltip(btn) {
+    const src = btn.nextElementSibling;
+    if (!src || !src.classList.contains('term-tooltip')) return;
+    clearTimeout(hideTimer);
+    portal.innerHTML = src.innerHTML;
+    portal.classList.add('visible');
+    const rect = btn.getBoundingClientRect();
+    const pw = Math.min(240, window.innerWidth - 32);
+    portal.style.width = pw + 'px';
+    const ph = portal.offsetHeight;
+    let left = rect.left;
+    let top = rect.top - ph - 6;
+    if (top < 8) top = rect.bottom + 6;
+    if (left + pw > window.innerWidth - 16) left = window.innerWidth - pw - 16;
+    if (left < 16) left = 16;
+    portal.style.left = left + 'px';
+    portal.style.top = top + 'px';
+  }
+
+  function scheduleHide() { hideTimer = setTimeout(() => portal.classList.remove('visible'), 150); }
+
+  document.addEventListener('mouseover', e => {
+    const btn = e.target.closest('.term-info');
+    if (btn) { showTooltip(btn); return; }
+    if (e.target.closest('#nt-tooltip')) { clearTimeout(hideTimer); return; }
+  });
+  document.addEventListener('mouseout', e => {
+    if (e.target.closest('.term-info') || e.target.closest('#nt-tooltip')) scheduleHide();
+  });
+  document.addEventListener('focusin', e => { const btn = e.target.closest('.term-info'); if (btn) showTooltip(btn); });
+  document.addEventListener('focusout', e => { if (!e.relatedTarget || !e.relatedTarget.closest('#nt-tooltip')) scheduleHide(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { clearTimeout(hideTimer); portal.classList.remove('visible'); } });
+})();
 </script>
 </body>
 </html>
