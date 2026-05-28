@@ -225,7 +225,7 @@
     .spinner { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--accent); animation: spin .8s linear infinite; }
 
     @media (max-width: 1099px) { .nav-links { gap: 14px; } .nav-link { font-size: 12.5px; } }
-    @media (max-width: 959px) { .nav-links { display: none; } .hamburger-btn { display: flex; } }
+    @media (max-width: 959px) { .nav-links { display: none; } .hamburger-btn { display: flex; } .nav { padding: 18px 20px 14px; gap: 14px; } }
     @media (max-width: 960px) {
       .hero { padding: 28px 20px 20px; }
       .hero-h1 { font-size: 26px; letter-spacing: -.6px; }
@@ -254,6 +254,10 @@
       .log-row.log-grid > *:nth-child(1) { grid-column: 1; grid-row: 1; }
       .log-row.log-grid > *:nth-child(2) { grid-column: 2; grid-row: 1; justify-self: end; }
       .log-row.log-grid > *:nth-child(3) { grid-column: 1 / -1; grid-row: 2; }
+      .sig-row { grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 4px 10px; padding: 12px 16px; }
+      .sig-row > *:nth-child(1) { grid-column: 1; grid-row: 1; }
+      .sig-row > *:nth-child(2) { grid-column: 2; grid-row: 1; justify-self: start; }
+      .sig-row > *:nth-child(3) { grid-column: 1 / -1; grid-row: 2; }
     }
   </style>
   <script defer src="https://umami.nettradar.no/script.js" data-website-id="1c7c3c7e-4456-4d21-8837-d4dab429f5ab"></script>
@@ -352,7 +356,7 @@
     <span class="section-title">Per ASN</span>
     <span class="section-sub" id="asn-activity-count">BGP-aktivitet per ASN</span>
     <span style="flex:1"></span>
-    <span style="font-size:11px;color:var(--dim);display:inline-flex;align-items:center;gap:5px">
+    <span id="flagged-legend" style="font-size:11px;color:var(--dim);display:none;align-items:center;gap:5px">
       <span style="width:8px;height:8px;border-radius:4px;background:var(--red);flex-shrink:0"></span>
       Flagget
     </span>
@@ -575,7 +579,9 @@ function getFlaggedMap() {
   const flagged = {};
   (radarData.hijack_alerts || []).forEach(h => {
     if (!flagged[h.victim_asn]) flagged[h.victim_asn] = [];
-    flagged[h.victim_asn].push({ type: 'HIJACK', source: 'Cloudflare', detail: `AS${h.hijacker_asn} annonserer ${h.prefix}` });
+    flagged[h.victim_asn].push({ type: 'HIJACK · OFFER', source: 'Cloudflare', detail: `AS${h.hijacker_asn} annonserer ${h.prefix}` });
+    if (!flagged[h.hijacker_asn]) flagged[h.hijacker_asn] = [];
+    flagged[h.hijacker_asn].push({ type: 'HIJACK · KILDE', source: 'Cloudflare', detail: `annonserer norsk prefiks ${h.prefix} (normalt AS${h.victim_asn})` });
   });
   (radarData.route_leaks || []).forEach(l => {
     if (!flagged[l.origin_asn]) flagged[l.origin_asn] = [];
@@ -592,6 +598,8 @@ function renderAsnGrid() {
     return;
   }
   const flagMap = getFlaggedMap();
+  const legendEl = document.getElementById('flagged-legend');
+  if (legendEl) legendEl.style.display = Object.keys(flagMap).length > 0 ? 'inline-flex' : 'none';
   const flagCount = Object.keys(flagMap).filter(asn => noAsns[parseInt(asn)]).length;
   const flagEl = document.getElementById('stat-flagged-count');
   if (flagEl) { flagEl.textContent = flagCount; flagEl.style.color = flagCount > 0 ? 'var(--red)' : 'var(--dimmer)'; }

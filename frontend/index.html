@@ -813,7 +813,7 @@ function applySnapshot(data) {
   const heroEl = document.getElementById('hero-h1');
   if (delta === null) {
     const noDataStr = alerts.length > 0
-      ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> sikkerhetshendelser detektert siste 24 t.`
+      ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> ${alerts.length === 1 ? 'sikkerhetshendelse' : 'sikkerhetshendelser'} detektert siste 24 t.`
       : 'Ingen aktive sikkerhetsvarsler.';
     heroEl.innerHTML = `DDoS-aktivitet: ingen data ennå. ${noDataStr}`;
   } else {
@@ -821,7 +821,7 @@ function applySnapshot(data) {
     if (delta > 0) {
       const ddosColor = delta <= 20 ? 'var(--amber)' : 'var(--red)';
       const countStr = alerts.length > 0
-        ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> sikkerhetshendelser detektert siste 24 t.`
+        ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> ${alerts.length === 1 ? 'sikkerhetshendelse' : 'sikkerhetshendelser'} detektert siste 24 t.`
         : 'Ingen sikkerhetshendelser detektert siste 24 t.';
       heroEl.innerHTML = `DDoS-aktivitet ligger <span class="acc" style="color:${ddosColor}">${absDelta}%</span> over snitt. ${countStr}`;
     } else {
