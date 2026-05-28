@@ -10,10 +10,12 @@ Sanntids overvåkingsdashboard for norsk internett-infrastruktur. Viser BGP-hend
 
 | Side | URL | Beskrivelse |
 |---|---|---|
-| Dashboard | `/` | Oversikt med DDoS-intensitet, sikkerhetsvarsler og nøkkeltall |
-| BGP-aktivitet | `/bgp` | Live BGP-strøm og per-ASN statistikk |
-| Topologi | `/topologi` | AS-topologi som interaktiv kraft-graf (D3) |
-| Om | `/om` | Om prosjektet og datakildene |
+| Dashboard | `/` | Nasjonal status: kombinert DDoS-intensitet (L7 + L3/4) og fire kvadranter for DDoS, Sikkerhet, Tilgjengelighet og Trafikkavvik |
+| DDoS | `/ddos` | Detaljert DDoS-analyse med per-lag intensitet (L7 / L3/4), tidsserier og kilde-AS-tabell |
+| BGP-aktivitet | `/bgp` | Live BGP-strøm, per-ASN statistikk og flaggede hijacks/rutelekkasjeer |
+| Tilgjengelighet | `/tilgjengelighet` | Aktive nettavbrudd, trafikkavvik og historikk siste 30 dager |
+| Om | `/om` | Om prosjektet, datakilder og begrepsforklaringer |
+| Topologi | `/topologi` | AS-topologi som interaktiv kraft-graf (D3) — ikke i nav |
 
 ## Datakilder
 
@@ -70,10 +72,12 @@ nettradar/
 │   ├── ripe_client.py   # RIPE RIS Live WebSocket-klient
 │   └── peeringdb.py     # PeeringDB ASN-lasting
 ├── frontend/
-│   ├── index.html       # Dashboard
-│   ├── bgp.html         # BGP-aktivitet
-│   ├── topologi.html    # AS-topologi
-│   └── om.html          # Om-side
+│   ├── index.html           # Dashboard
+│   ├── ddos.html            # DDoS-analyse
+│   ├── bgp.html             # BGP-aktivitet
+│   ├── tilgjengelighet.html # Nettavbrudd og trafikkavvik
+│   ├── om.html              # Om-side
+│   └── topologi.html        # AS-topologi (ikke i nav)
 └── requirements.txt
 ```
 

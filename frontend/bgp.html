@@ -236,8 +236,25 @@
       .sig-row > *:nth-child(4) { display: none; }
     }
     @media (max-width: 600px) { .asn-grid { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 480px) { .asn-grid { grid-template-columns: 1fr; } .hero-h1 { font-size: 22px; } .hero-stats { display: grid; grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 700px) { .nav-right .status-indicator { display: none; } #mobile-live-ind { display: inline-flex !important; } #refresh-area { display: none !important; } }
+    @media (max-width: 700px) {
+      .nav-right .status-indicator { display: none; }
+      #mobile-live-ind { display: inline-flex !important; }
+      #refresh-area { display: none !important; }
+      .log-grid { grid-template-columns: 70px 90px 1fr; }
+      .log-grid > *:nth-child(4), .log-grid > *:nth-child(5) { display: none; }
+      .log-header { padding: 8px 14px; }
+      .log-row { padding: 8px 14px; font-size: 11.5px; }
+    }
+    @media (max-width: 480px) {
+      .asn-grid { grid-template-columns: 1fr; }
+      .hero-h1 { font-size: 22px; }
+      .hero-stats { display: grid; grid-template-columns: 1fr 1fr; }
+      .log-header { display: none; }
+      .log-row.log-grid { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 3px 8px; padding: 10px 14px; }
+      .log-row.log-grid > *:nth-child(1) { grid-column: 1; grid-row: 1; }
+      .log-row.log-grid > *:nth-child(2) { grid-column: 2; grid-row: 1; justify-self: end; }
+      .log-row.log-grid > *:nth-child(3) { grid-column: 1 / -1; grid-row: 2; }
+    }
   </style>
   <script defer src="https://umami.nettradar.no/script.js" data-website-id="1c7c3c7e-4456-4d21-8837-d4dab429f5ab"></script>
 </head>
@@ -299,7 +316,7 @@
   <div class="hero-kicker">BGP-aktivitet</div>
   <h1 class="hero-h1">
     <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums" id="stat-epm">—</span>
-    BGP-meldinger per minutt fra
+    BGP-meldinger om norske ruter per minutt. Overvåker
     <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums" id="stat-asn-count">—</span>
     norske ASN-er.<span style="color:var(--dim);font-weight:400"> Flagget:
     <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums" id="stat-flagged-count">0</span>
@@ -307,7 +324,7 @@
   </h1>
   <div class="hero-stats">
     <div class="stat-block">
-      <div class="stat-label">Annons/min (60 sek)</div>
+      <div class="stat-label">Origin annons/min (60 sek)</div>
       <div class="stat-num" id="stat-ann-rate">—</div>
     </div>
     <div class="stat-block">
@@ -598,8 +615,12 @@ function renderAsnGrid() {
 
   const withActivity = sorted.filter(({ asn }) => flagMap[asn] || ((asnStats[asn] || {}).updates || 0) + ((asnStats[asn] || {}).withdraws || 0) > 0).length;
   const silentCount = sorted.length - withActivity;
+  const excludedCount = asnList.length - sorted.length;
   const actEl = document.getElementById('asn-activity-count');
-  if (actEl) actEl.textContent = `${sorted.length} ASN · ${withActivity} aktive · ${silentCount} stille`;
+  if (actEl) {
+    const excStr = excludedCount > 0 ? ` · ${excludedCount} tidligere ekskludert` : '';
+    actEl.textContent = `${sorted.length} av ${asnList.length} ASN · ${withActivity} aktive · ${silentCount} stille${excStr}`;
+  }
 
   grid.innerHTML = sorted.map(({ asn }) => {
     const name = noAsns[asn] || `AS${asn}`;

@@ -115,11 +115,12 @@
     .hero-h1 { font-size: 42px; font-weight: 500; letter-spacing: -1.4px; line-height: 1.05; margin: 0; text-wrap: balance; }
     .hero-h1 .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
     .hero-stats { margin-top: 22px; display: flex; gap: 48px; flex-wrap: wrap; }
+    .stat-group { display: flex; gap: 28px; }
     .stat-label { font-size: 11px; color: var(--dim); margin-bottom: 4px; letter-spacing: .2px; }
     .stat-val-row { display: flex; align-items: baseline; gap: 4px; }
     .stat-num { font-size: 26px; font-weight: 500; letter-spacing: -.8px; font-variant-numeric: tabular-nums; line-height: 1; font-family: 'JetBrains Mono', monospace; }
     .stat-unit { font-size: 13px; color: var(--dim); }
-    .stat-sub { font-size: 11px; color: var(--dim); margin-top: 2px; }
+
 
     /* SECTIONS */
     .section { padding: 0 40px; margin-bottom: 24px; }
@@ -271,19 +272,26 @@
     <div>
       <div class="stat-label">Topp-intensitet</div>
       <div class="stat-val-row"><span class="stat-num" id="stat-peak">—</span></div>
-      <div class="stat-sub" id="stat-peak-sub"></div>
     </div>
-    <div>
-      <div class="stat-label">Snitt L7</div>
-      <div class="stat-val-row"><span class="stat-num" id="stat-avg-l7">—</span></div>
+    <div class="stat-group">
+      <div>
+        <div class="stat-label" title="Applikasjonslag — HTTP-flood, login-floods, slowloris. Lett å sende, vanskelig å skille fra ekte brukere.">Snitt L7</div>
+        <div class="stat-val-row"><span class="stat-num" id="stat-avg-l7">—</span></div>
+      </div>
+      <div>
+        <div class="stat-label" title="Applikasjonslag — HTTP-flood, login-floods, slowloris. Lett å sende, vanskelig å skille fra ekte brukere.">L7 mot snitt</div>
+        <div class="stat-val-row"><span class="stat-num" id="stat-vs-l7" style="color:var(--dimmer)">—</span></div>
+      </div>
     </div>
-    <div>
-      <div class="stat-label">Snitt L3/4</div>
-      <div class="stat-val-row"><span class="stat-num" id="stat-avg-l3">—</span></div>
-    </div>
-    <div>
-      <div class="stat-label">Mot snitt</div>
-      <div class="stat-val-row"><span class="stat-num" id="stat-vs-avg">—</span><span class="stat-unit">%</span></div>
+    <div class="stat-group">
+      <div>
+        <div class="stat-label" title="Nettverks- og transportlag — UDP/SYN-flood, amplifikasjons-angrep. Måles i båndbredde.">Snitt L3/4</div>
+        <div class="stat-val-row"><span class="stat-num" id="stat-avg-l3">—</span></div>
+      </div>
+      <div>
+        <div class="stat-label" title="Nettverks- og transportlag — UDP/SYN-flood, amplifikasjons-angrep. Måles i båndbredde.">L3/4 mot snitt</div>
+        <div class="stat-val-row"><span class="stat-num" id="stat-vs-l3" style="color:var(--dimmer)">—</span></div>
+      </div>
     </div>
     <div>
       <div class="stat-label">Unike Kilde-AS</div>
@@ -378,6 +386,28 @@
 </main>
 
 <script>
+// ── Delta helpers ──────────────────────────────────────────────────────────
+function computeDeltas(radar, chartL7, chartL3) {
+  const l7Current = radar.current_attack_intensity || 0;
+  const l7Base    = radar.attack_baseline_24h || 0;
+  const l3Vals    = chartL3.map(p => p.value);
+  const l3Current = l3Vals.length ? l3Vals[l3Vals.length - 1] : 0;
+  const l3Base    = l3Vals.length ? l3Vals.reduce((s, v) => s + v, 0) / l3Vals.length : 0;
+  const l7Delta   = l7Base > 0 ? Math.round((l7Current / l7Base - 1) * 100) : null;
+  const l3Delta   = l3Base > 0 ? Math.round((l3Current / l3Base - 1) * 100) : null;
+  const peakL7    = chartL7.length ? Math.max(...chartL7.map(p => p.value)) : 0;
+  const peakL3    = chartL3.length ? Math.max(...chartL3.map(p => p.value)) : 0;
+  return { l7Delta, l3Delta, peakValue: Math.max(peakL7, peakL3) };
+}
+
+function fmtLayerDelta(label, delta, tagColor, tagBg) {
+  const tag = `<span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:1px;color:${tagColor};background:${tagBg};padding:2px 5px;border-radius:3px">${label}</span>`;
+  if (delta === null) return tag + ` <span style="color:var(--dimmer)">—</span>`;
+  const color = delta > 0 ? 'var(--red)' : 'var(--green)';
+  const statusText = delta > 0 ? 'over snitt' : 'under snitt';
+  return `${tag} <span style="color:${color};font-weight:600">${delta >= 0 ? '+' : ''}${delta}%</span> <span style="color:var(--dim);font-weight:400">${statusText}</span>`;
+}
+
 // ── Theme ──────────────────────────────────────────────────────────────────
 function toggleTheme() {
   const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
@@ -568,35 +598,27 @@ function applySnapshot(data) {
   if (chartL7.length > 0 || chartL3.length > 0) {
     const allL7 = chartL7.map(p => p.value);
     const allL3 = chartL3.map(p => p.value);
-    const peakL7 = allL7.length ? Math.max(...allL7) : 0;
-    const peakL3 = allL3.length ? Math.max(...allL3) : 0;
-    const peak = Math.max(peakL7, peakL3);
     const avgL7 = allL7.length ? allL7.reduce((s, v) => s + v, 0) / allL7.length : 0;
     const avgL3 = allL3.length ? allL3.reduce((s, v) => s + v, 0) / allL3.length : 0;
+    const d = computeDeltas(radar, chartL7, chartL3);
 
-    document.getElementById('stat-peak').textContent = peak.toFixed(2);
+    document.getElementById('stat-peak').textContent = d.peakValue.toFixed(2);
+
     document.getElementById('stat-avg-l7').textContent = avgL7.toFixed(2);
     document.getElementById('stat-avg-l3').textContent = avgL3.toFixed(2);
 
-    const l7Current = radar.current_attack_intensity || 0;
-    const l7Base = radar.attack_baseline_24h || 0;
-    const l3Vals = (radar.layer3_timeseries || []).map(p => p.value);
-    const l3Current = l3Vals.length ? l3Vals[l3Vals.length - 1] : 0;
-    const l3Base = l3Vals.length ? l3Vals.reduce((s, v) => s + v, 0) / l3Vals.length : 0;
-    const current = Math.max(l7Current, l3Current);
-    const baseline = Math.max(l7Base, l3Base);
-    const l3Dominant = l3Current > l7Current * 1.1;
-    const l7Dominant = l7Current > l3Current * 1.1;
-    const layerLabel = l3Dominant ? 'L3/4' : l7Dominant ? 'L7' : 'DDoS';
-    const deltaEl = document.getElementById('stat-vs-avg');
-    const ddosDelta = document.getElementById('ddos-delta');
-    if (baseline > 0) {
-      const delta = Math.round((current / baseline - 1) * 100);
-      deltaEl.textContent = (delta >= 0 ? '+' : '') + delta;
-      deltaEl.closest('.stat-val-row').querySelector('.stat-num').style.color = delta > 0 ? 'var(--red)' : 'var(--green)';
-      ddosDelta.textContent = delta > 0 ? `+${delta}% over snitt (${layerLabel})` : `${Math.abs(delta)}% under snitt (${layerLabel})`;
-      ddosDelta.style.color = delta > 0 ? 'var(--red)' : 'var(--green)';
-    }
+    const vsL7El = document.getElementById('stat-vs-l7');
+    if (d.l7Delta !== null) { vsL7El.textContent = (d.l7Delta >= 0 ? '+' : '') + d.l7Delta + '%'; vsL7El.style.color = d.l7Delta > 0 ? 'var(--red)' : 'var(--green)'; }
+    else { vsL7El.textContent = '—'; vsL7El.style.color = 'var(--dimmer)'; }
+
+    const vsL3El = document.getElementById('stat-vs-l3');
+    if (d.l3Delta !== null) { vsL3El.textContent = (d.l3Delta >= 0 ? '+' : '') + d.l3Delta + '%'; vsL3El.style.color = d.l3Delta > 0 ? 'var(--red)' : 'var(--green)'; }
+    else { vsL3El.textContent = '—'; vsL3El.style.color = 'var(--dimmer)'; }
+
+    document.getElementById('ddos-delta').innerHTML =
+      fmtLayerDelta('L7', d.l7Delta, 'var(--amber)', 'rgba(245,185,66,.14)') +
+      `<span style="color:var(--dimmer);margin:0 6px">·</span>` +
+      fmtLayerDelta('L3/4', d.l3Delta, 'var(--red)', 'rgba(255,107,91,.14)');
   }
 
   // Kilde-AS count as "Unike Kilde-AS"

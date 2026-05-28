@@ -556,9 +556,11 @@ function applySnapshot(data) {
   const trafEl = document.getElementById('section-trafikkavvik');
   const histEl = document.getElementById('section-historikk');
 
+  const nettavbruddHeader = document.querySelector('#section-nettavbrudd .section-header');
   if (allClear) {
     if (trafEl) trafEl.style.display = 'none';
     if (histEl) histEl.style.display = 'none';
+    if (nettavbruddHeader) nettavbruddHeader.style.display = 'none';
     // Update hero stats
     const statOutages = document.getElementById('stat-outages');
     if (statOutages) statOutages.textContent = '0';
@@ -581,6 +583,7 @@ function applySnapshot(data) {
   } else {
     if (trafEl) trafEl.style.display = '';
     if (histEl) histEl.style.display = '';
+    if (nettavbruddHeader) nettavbruddHeader.style.display = '';
     renderOutages(outages);
     renderAnomalies(anomalies);
     renderHistorikk(outages, anomalies);
