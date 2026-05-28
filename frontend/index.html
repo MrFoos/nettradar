@@ -156,6 +156,14 @@
     .quad-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text); }
     .quad-sub { font-size: 11.5px; color: var(--dim); }
     .quad-stat { font-size: 12px; font-weight: 600; }
+    .ddos-delta-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: 1.2; flex-shrink: 0; }
+    .ddos-delta-row { display: flex; align-items: baseline; gap: 8px; }
+    .ddos-delta-tag { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; padding: 2px 6px; border-radius: 3px; text-align: center; flex-shrink: 0; }
+    .ddos-delta-tag.l7  { color: var(--amber); background: rgba(245,185,66,.14); }
+    .ddos-delta-tag.l3  { color: var(--red);   background: rgba(255,107,91,.14); }
+    [data-theme="light"] .ddos-delta-tag.l7 { background: rgba(184,122,12,.12); }
+    [data-theme="light"] .ddos-delta-tag.l3 { background: rgba(216,58,46,.10); }
+    .ddos-delta-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 48px; text-align: right; }
     .quad-body { display: flex; flex-direction: column; gap: 8px; flex: 1; }
     .quad-footer { padding-top: 10px; margin-top: auto; }
 
@@ -233,10 +241,13 @@
       .nav-links { display: none; }
       .hamburger-btn { display: flex; }
     }
-    /* Bare green dots without labels are noise — hide both indicators on phones */
     @media (max-width: 700px) {
       .nav-right .status-indicator { display: none; }
       #refresh-area { display: none !important; }
+      #mobile-live-ind { display: inline-flex !important; }
+    }
+    @media (max-width: 480px) {
+      #quad-ddos .quad-sub { display: none; }
     }
     .skip-link {
       position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
@@ -293,6 +304,7 @@
   <div class="nav-right">
     <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE</span></span>
     <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
+    <span class="status-indicator" id="mobile-live-ind" style="display:none"><span class="status-dot" id="mobile-live-dot"></span><span style="font-size:10.5px;letter-spacing:.8px">LIVE</span></span>
     <span id="refresh-area" style="display:flex;align-items:center;gap:5px">
       <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">--:--</span>
       <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--dimmer);display:flex;align-items:center" aria-label="Oppdater dashboardet nå">
@@ -329,16 +341,12 @@
       <div class="stat-val-row"><span class="stat-num" id="stat-epm">—</span><span class="stat-unit">/min</span></div>
     </div>
     <div>
-      <div class="stat-label">Aktive ASN</div>
+      <div class="stat-label">Overvåkede ASN</div>
       <div class="stat-val-row"><span class="stat-num" id="stat-asns">—</span></div>
     </div>
     <div>
       <div class="stat-label">Norske prefikser</div>
       <div class="stat-val-row"><span class="stat-num" id="stat-prefixes">—</span></div>
-    </div>
-    <div>
-      <div class="stat-label">Uptime</div>
-      <div class="stat-val-row"><span class="stat-num" id="stat-uptime">99.97</span><span class="stat-unit">%</span></div>
     </div>
   </div>
 </div>
@@ -352,7 +360,10 @@
       <span class="quad-title">DDoS-aktivitet</span>
       <a href="/ddos" class="quad-sub" style="text-decoration:none">normalisert intensitet →</a>
       <span style="flex:1"></span>
-      <span id="ddos-delta" class="quad-stat" style="color:var(--dim)">—</span>
+      <div id="ddos-delta" class="ddos-delta-stack">
+        <div class="ddos-delta-row"><span class="ddos-delta-tag l7" title="Applikasjonslag (HTTP-flood, login-floods)">L7</span><span class="ddos-delta-val" id="ddos-delta-l7">—</span></div>
+        <div class="ddos-delta-row"><span class="ddos-delta-tag l3" title="Nettverks-/transportlag (UDP-, SYN-flood, volumangrep)">L3/4</span><span class="ddos-delta-val" id="ddos-delta-l3">—</span></div>
+      </div>
     </div>
     <div id="chart-wrap" style="overflow:hidden;flex:1;min-height:0;padding:0;position:relative">
       <svg id="ddos-chart" style="display:block;width:100%;height:100%"></svg>
@@ -742,6 +753,15 @@ function renderTimelineStrip(radar) {
     </div>`;
 }
 
+// ── Mobile live indicator ──────────────────────────────────────────────────
+function updateMobileLive() {
+  const dot = document.getElementById('mobile-live-dot');
+  if (!dot) return;
+  const ripe = document.getElementById('ripe-dot').classList.contains('live');
+  const cfEl = document.getElementById('cf-dot');
+  dot.classList.toggle('live', ripe && (!cfEl || cfEl.classList.contains('live')));
+}
+
 // ── State update ───────────────────────────────────────────────────────────
 let noAsns = {};
 
@@ -768,20 +788,35 @@ function applySnapshot(data) {
 
 
 
-  // DDoS delta
-  const baseline = radar.attack_baseline_24h || 0;
-  const current = radar.current_attack_intensity || 0;
-  const deltaEl = document.getElementById('ddos-delta');
-  if (baseline > 0) {
-    const delta = Math.round((current / baseline - 1) * 100);
-    if (delta > 0) {
-      deltaEl.style.color = 'var(--red)';
-      deltaEl.textContent = `+${delta}% over snitt`;
-    } else {
-      deltaEl.style.color = 'var(--green)';
-      deltaEl.textContent = `${Math.abs(delta)}% under snitt`;
-    }
-    const heroEl = document.getElementById('hero-h1');
+  // DDoS delta — per-lag values + hero
+  const l7Current = radar.current_attack_intensity || 0;
+  const l7Base = radar.attack_baseline_24h || 0;
+  const l3Vals = (radar.layer3_timeseries || []).map(p => p.value);
+  const l3Current = l3Vals.length ? l3Vals[l3Vals.length - 1] : 0;
+  const l3Base = l3Vals.length ? l3Vals.reduce((s, v) => s + v, 0) / l3Vals.length : 0;
+  const combinedCur  = l7Current + l3Current;
+  const combinedBase = l7Base + l3Base;
+  const delta = combinedBase > 0 ? Math.round((combinedCur / combinedBase - 1) * 100) : null;
+
+  const fmt = (cur, base) => {
+    if (base <= 0) return { txt: '—', color: 'var(--dimmer)' };
+    const d = Math.round((cur / base - 1) * 100);
+    return { txt: `${d > 0 ? '+' : ''}${d}%`, color: d > 0 ? 'var(--red)' : 'var(--green)' };
+  };
+  const l7f = fmt(l7Current, l7Base);
+  const l3f = fmt(l3Current, l3Base);
+  const l7El = document.getElementById('ddos-delta-l7');
+  const l3El = document.getElementById('ddos-delta-l3');
+  l7El.textContent = l7f.txt; l7El.style.color = l7f.color;
+  l3El.textContent = l3f.txt; l3El.style.color = l3f.color;
+
+  const heroEl = document.getElementById('hero-h1');
+  if (delta === null) {
+    const noDataStr = alerts.length > 0
+      ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> sikkerhetshendelser detektert siste 24 t.`
+      : 'Ingen aktive sikkerhetsvarsler.';
+    heroEl.innerHTML = `DDoS-aktivitet: ingen data ennå. ${noDataStr}`;
+  } else {
     const absDelta = Math.abs(delta);
     if (delta > 0) {
       const ddosColor = delta <= 20 ? 'var(--amber)' : 'var(--red)';
@@ -808,7 +843,7 @@ function applySnapshot(data) {
   renderHendelser(alerts, outages, anomalies, noAsns);
 
   // Cloudflare indicator
-  if (radar.last_updated) document.getElementById('cf-dot').classList.add('live');
+  if (radar.last_updated) { document.getElementById('cf-dot').classList.add('live'); updateMobileLive(); }
 }
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
@@ -817,7 +852,7 @@ function connect() {
   if (ws) { ws.onclose = null; ws.close(); }
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   ws = new WebSocket(`${proto}://${location.host}/ws`);
-  ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
+  ws.onopen = () => { document.getElementById('ripe-dot').classList.add('live'); updateMobileLive(); };
   ws.onmessage = e => {
     const msg = JSON.parse(e.data);
     if (msg.type === 'state_snapshot') { applySnapshot(msg.data); saveSnapshot(msg.data); markUpdated(); }
@@ -831,6 +866,7 @@ function connect() {
   };
   ws.onclose = () => {
     document.getElementById('ripe-dot').classList.remove('live');
+    updateMobileLive();
     setTimeout(connect, 3000);
   };
   ws.onerror = () => ws.close();
