@@ -419,8 +419,8 @@
 <div class="source-footer">
   <div class="source-footer-label">Kilder</div>
   <div class="source-footer-items">
-    <div><strong>Cloudflare Radar</strong> — DDoS-intensitet, nettavbrudd, trafikkavvik, BGP-hijack-klassifisering og rutelekkasjer</div>
-    <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW). Nettradar detekterer hijacks der ikke-norske ASN-er annonserer norske prefikser.</div>
+    <div><strong>Cloudflare Radar</strong> — DDoS-intensitet, nettavbrudd, trafikkavvik, klassifisering av BGP-kapringer og rutelekkasjer</div>
+    <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW). Nettradar detekterer BGP-kapringer der ikke-norske ASN-er annonserer norske prefikser.</div>
   </div>
 </div>
 </main>
@@ -502,12 +502,14 @@ function flag(code) {
 }
 function timeAgo(ts) {
   const d = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
-  if (d < 60) return d <= 5 ? 'nå' : d + ' sek siden';
-  if (d < 3600) return Math.floor(d / 60) + ' min siden';
-  const h = Math.floor(d / 3600);
-  const m = Math.floor((d % 3600) / 60);
-  if (d < 86400) return m > 0 ? `${h} t ${m} m siden` : `${h} t siden`;
-  return Math.floor(d / 86400) + ' d siden';
+  if (d < 60)    return 'akkurat nå';
+  if (d < 3600)  return `${Math.floor(d/60)} m siden`;
+  if (d < 86400) {
+    const h = Math.floor(d/3600);
+    const m = Math.floor((d % 3600) / 60);
+    return m === 0 ? `${h} t siden` : `${h} t ${m} m siden`;
+  }
+  return `${Math.floor(d/86400)} d siden`;
 }
 function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 
@@ -546,13 +548,17 @@ function renderChart() {
   const yCenterNeg = -(padT + iH / 2);
   const yTitle = `<text transform="rotate(-90)" x="${yCenterNeg.toFixed(0)}" y="12" text-anchor="middle" font-size="10.5" font-weight="600" font-family="JetBrains Mono,monospace" letter-spacing="1.4" fill="${dim}">INTENSITET (0–1)</text>`;
 
+  const firstTs = new Date(src[0].timestamp).getTime();
+  const lastTs  = new Date(src[n - 1].timestamp).getTime();
+  const tSpan   = lastTs - firstTs || 1;
+  const xByTime = ts => padL + ((ts - firstTs) / tSpan) * iW;
+  const t0 = new Date(firstTs); t0.setMinutes(0, 0, 0, 0);
+  const hRem = t0.getHours() % 3; if (hRem !== 0) t0.setHours(t0.getHours() + (3 - hRem));
   const xTicks = [];
-  for (let s = 0; s <= 8; s++) {
-    const idx = Math.round((s / 8) * (n - 1));
-    if (idx >= 0 && idx < n) {
-      const hr = String(new Date(src[idx].timestamp).getHours()).padStart(2, '0');
-      xTicks.push(`<text x="${xa(idx, n).toFixed(1)}" y="${(padT + iH + 17).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${hr}</text>`);
-    }
+  for (let t = t0.getTime(); t <= lastTs; t += 3 * 3600_000) {
+    if (t < firstTs) continue;
+    const hr = String(new Date(t).getHours()).padStart(2, '0');
+    xTicks.push(`<text x="${xByTime(t).toFixed(1)}" y="${(padT + iH + 17).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${hr}</text>`);
   }
   svg.innerHTML = `
     <defs>
@@ -599,7 +605,7 @@ function renderHendelser(alerts, outages, anomalies, noAsns) {
   const secBody = document.getElementById('quad-sec-body');
   if (secBody) {
     if (!alerts.length) {
-      secBody.innerHTML = emptyQuad('Ingen hijacks eller rutelekk flagget siste 24 t.');
+      secBody.innerHTML = emptyQuad('Ingen BGP-kapringer eller rutelekkasjer flagget siste 24 t.');
     } else {
       const items = alerts.slice(0, 3).map(a => {
         const isH = a.kind === 'hijack';
@@ -764,6 +770,7 @@ function updateMobileLive() {
 
 // ── State update ───────────────────────────────────────────────────────────
 let noAsns = {};
+let lastAlerts = [];
 
 function applySnapshot(data) {
   const overlay = document.getElementById('loading-overlay');
@@ -785,6 +792,7 @@ function applySnapshot(data) {
   const hijacks = (radar.hijack_alerts || []).map(h => ({...h, kind:'hijack'}));
   const leaks = (radar.route_leaks || []).map(l => ({...l, kind:'leak'}));
   const alerts = [...hijacks, ...leaks];
+  lastAlerts = alerts;
 
 
 
@@ -823,15 +831,19 @@ function applySnapshot(data) {
       const countStr = alerts.length > 0
         ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> ${alerts.length === 1 ? 'sikkerhetshendelse' : 'sikkerhetshendelser'} detektert siste 24 t.`
         : 'Ingen sikkerhetshendelser detektert siste 24 t.';
-      heroEl.innerHTML = `DDoS-aktivitet ligger <span class="acc" style="color:${ddosColor}">${absDelta}%</span> over snitt. ${countStr}`;
+      heroEl.innerHTML = `DDoS-aktivitet ligger <span class="acc" style="color:${ddosColor}">${absDelta}%</span> over snittet. ${countStr}`;
     } else {
-      heroEl.innerHTML = `DDoS-aktivitet er <span class="acc" style="color:var(--green)">${absDelta}%</span> under snitt. Ingen aktive sikkerhetsvarsler.`;
+      heroEl.innerHTML = `DDoS-aktivitet er <span class="acc" style="color:var(--green)">${absDelta}%</span> under snittet. Ingen aktive sikkerhetsvarsler.`;
     }
   }
 
-  // Charts
-  chartL7 = radar.attack_timeseries || [];
-  chartL3 = radar.layer3_timeseries || [];
+  // Charts — normaliser mot kombinert max hvis verdier > 1.0
+  const raw7 = radar.attack_timeseries || [];
+  const raw3 = radar.layer3_timeseries || [];
+  const allVals = [...raw7.map(p => p.value), ...raw3.map(p => p.value)];
+  const maxVal = allVals.length ? Math.max(...allVals) : 1;
+  chartL7 = maxVal > 1 ? raw7.map(p => ({...p, value: p.value / maxVal})) : raw7;
+  chartL3 = maxVal > 1 ? raw3.map(p => ({...p, value: p.value / maxVal})) : raw3;
   renderChart();
 
   // Outages + anomalies
@@ -860,7 +872,7 @@ function connect() {
       const r = msg.data;
       renderIncidentBanner(r.active_outages || []);
       renderTimelineStrip(r);
-      renderHendelser([], r.active_outages || [], r.traffic_anomaly_events || [], noAsns);
+      renderHendelser(lastAlerts, r.active_outages || [], r.traffic_anomaly_events || [], noAsns);
       markUpdated();
     }
   };

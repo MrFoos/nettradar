@@ -406,8 +406,8 @@
 <div class="source-footer">
   <div class="source-footer-label">Kilder</div>
   <div class="source-footer-items">
-    <div><strong>Cloudflare Radar</strong> — BGP-hijack-klassifisering og rutelekkasjer</div>
-    <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW). Nettradar detekterer hijacks der ikke-norske ASN-er annonserer norske prefikser.</div>
+    <div><strong>Cloudflare Radar</strong> — klassifisering av BGP-kapringer og rutelekkasjer</div>
+    <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW). Nettradar detekterer BGP-kapringer der ikke-norske ASN-er annonserer norske prefikser.</div>
   </div>
 </div>
 </main>
@@ -499,13 +499,15 @@ function updateMobileLive() {
 }
 
 function timeAgo(ms) {
-  const diff = Date.now() - ms;
-  const sec = Math.floor(diff / 1000);
-  if (sec < 60) return `${sec} s siden`;
-  const min = Math.floor(sec / 60);
-  if (min < 60) return `${min} min siden`;
-  const h = Math.floor(min / 60);
-  return `${h} t ${min % 60} min siden`;
+  const d = Math.floor((Date.now() - ms) / 1000);
+  if (d < 60)    return 'akkurat nå';
+  if (d < 3600)  return `${Math.floor(d/60)} m siden`;
+  if (d < 86400) {
+    const h = Math.floor(d/3600);
+    const m = Math.floor((d % 3600) / 60);
+    return m === 0 ? `${h} t siden` : `${h} t ${m} m siden`;
+  }
+  return `${Math.floor(d/86400)} d siden`;
 }
 
 // ── localStorage cache ─────────────────────────────────────────────────────
