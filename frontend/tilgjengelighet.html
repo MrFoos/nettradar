@@ -197,6 +197,7 @@
     @media (max-width: 700px) {
       .nav-right .status-indicator { display: none; }
       #refresh-area { display: none !important; }
+      #mobile-live-ind { display: inline-flex !important; }
       .section-sub { display: none; }
       .section-title { letter-spacing: 0.5px; }
       .section-stat { white-space: nowrap; flex-shrink: 0; }
@@ -237,6 +238,7 @@
   <div class="nav-right">
     <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE</span></span>
     <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
+    <span class="status-indicator" id="mobile-live-ind" style="display:none"><span class="status-dot" id="mobile-live-dot"></span><span style="font-size:10.5px;letter-spacing:.8px">LIVE</span></span>
     <span id="refresh-area" style="display:flex;align-items:center;gap:5px">
       <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">--:--</span>
       <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--dimmer);display:flex;align-items:center" aria-label="Oppdater siden nå">
@@ -281,10 +283,10 @@
 </div>
 
 <!-- AKTIVE NETTAVBRUDD -->
-<div class="section">
+<div class="section" id="section-nettavbrudd">
   <div class="section-header">
     <span class="section-title">Aktive nettavbrudd</span>
-    <span class="section-sub">aktive nettavbrudd</span>
+    <span class="section-sub">pågående hendelser detektert av kollektorer</span>
     <span style="flex:1"></span>
     <span id="outages-status" class="section-stat" style="font-size:12px;color:var(--dim)">—</span>
   </div>
@@ -294,7 +296,7 @@
 </div>
 
 <!-- TRAFIKKAVVIK -->
-<div class="section">
+<div class="section" id="section-trafikkavvik">
   <div class="section-header">
     <span class="section-title">Trafikkavvik</span>
     <span class="section-sub">statistiske avvik fra forventet trafikkvolum per ASN/region</span>
@@ -307,7 +309,7 @@
 </div>
 
 <!-- HISTORIKK -->
-<div class="section">
+<div class="section" id="section-historikk">
   <div class="section-header">
     <span class="section-title">Historikk siste 30 dager</span>
     <span class="section-sub">alle registrerte nettavbrudd og signifikante trafikkavvik</span>
@@ -534,6 +536,14 @@ function renderHistorikk(outages, anomalies) {
 // ── State ──────────────────────────────────────────────────────────────────
 let noAsns = {};
 
+function updateMobileLive() {
+  const dot = document.getElementById('mobile-live-dot');
+  if (!dot) return;
+  const ripe = document.getElementById('ripe-dot').classList.contains('live');
+  const cfEl = document.getElementById('cf-dot');
+  dot.classList.toggle('live', ripe && (!cfEl || cfEl.classList.contains('live')));
+}
+
 function applySnapshot(data) {
   noAsns = {};
   Object.entries(data.no_asns || {}).forEach(([k, v]) => { noAsns[parseInt(k)] = v; });
@@ -542,12 +552,43 @@ function applySnapshot(data) {
   const outages = radar.active_outages || [];
   const anomalies = radar.traffic_anomaly_events || [];
 
-  renderOutages(outages);
-  renderAnomalies(anomalies);
-  renderHistorikk(outages, anomalies);
+  const allClear = outages.length === 0 && anomalies.length === 0;
+  const trafEl = document.getElementById('section-trafikkavvik');
+  const histEl = document.getElementById('section-historikk');
+
+  if (allClear) {
+    if (trafEl) trafEl.style.display = 'none';
+    if (histEl) histEl.style.display = 'none';
+    // Update hero stats
+    const statOutages = document.getElementById('stat-outages');
+    if (statOutages) statOutages.textContent = '0';
+    const statAnomalies = document.getElementById('stat-anomalies');
+    if (statAnomalies) statAnomalies.textContent = '0';
+    const heroEl = document.getElementById('hero-h1');
+    if (heroEl) heroEl.innerHTML = `ALT OK — Norske ASN-er svarer normalt.`;
+    const statusEl = document.getElementById('outages-status');
+    if (statusEl) { statusEl.style.color = 'var(--green)'; statusEl.textContent = '● ingen pågående'; }
+    const outArea = document.getElementById('outages-area');
+    if (outArea) outArea.innerHTML = `
+      <div style="background:rgba(79,213,138,.05);border:1px solid rgba(79,213,138,.12);border-radius:14px;padding:28px 28px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:8px;height:8px;border-radius:4px;background:var(--green);flex-shrink:0;animation:c-pulse 2.5s ease-in-out infinite"></span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1.6px;color:var(--green)">ALT OK</span>
+        </div>
+        <div style="font-size:15px;font-weight:500;letter-spacing:-.2px">Norske ASN-er svarer normalt</div>
+        <div style="font-size:13px;color:var(--dim);line-height:1.5">Ingen aktive nettavbrudd, ingen trafikkavvik og ingen registrerte hendelser siste 30 dager.</div>
+      </div>`;
+  } else {
+    if (trafEl) trafEl.style.display = '';
+    if (histEl) histEl.style.display = '';
+    renderOutages(outages);
+    renderAnomalies(anomalies);
+    renderHistorikk(outages, anomalies);
+  }
 
   if (radar.last_updated) {
     document.getElementById('cf-dot').classList.add('live');
+    updateMobileLive();
   }
 }
 
@@ -557,7 +598,7 @@ function connect() {
   if (ws) { ws.onclose = null; ws.close(); }
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   ws = new WebSocket(`${proto}://${location.host}/ws`);
-  ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
+  ws.onopen = () => { document.getElementById('ripe-dot').classList.add('live'); updateMobileLive(); };
   ws.onmessage = e => {
     const msg = JSON.parse(e.data);
     if (msg.type === 'state_snapshot') { applySnapshot(msg.data); saveSnapshot(msg.data); markUpdated(); }
@@ -565,6 +606,7 @@ function connect() {
   };
   ws.onclose = () => {
     document.getElementById('ripe-dot').classList.remove('live');
+    updateMobileLive();
     setTimeout(connect, 3000);
   };
   ws.onerror = () => ws.close();

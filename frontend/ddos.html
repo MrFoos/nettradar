@@ -193,6 +193,7 @@
     @media (max-width: 700px) {
       .nav-right .status-indicator { display: none; }
       #refresh-area { display: none !important; }
+      #mobile-live-ind { display: inline-flex !important; }
       .col-bar { display: none; }
       .data-table td, .data-table th { padding: 8px 12px; }
     }
@@ -232,6 +233,7 @@
   <div class="nav-right">
     <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE</span></span>
     <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
+    <span class="status-indicator" id="mobile-live-ind" style="display:none"><span class="status-dot" id="mobile-live-dot"></span><span style="font-size:10.5px;letter-spacing:.8px">LIVE</span></span>
     <span id="refresh-area" style="display:flex;align-items:center;gap:5px">
       <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">--:--</span>
       <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--dimmer);display:flex;align-items:center" aria-label="Oppdater siden nå">
@@ -539,6 +541,15 @@ function renderOriginTable(origins) {
   if (countEl) countEl.textContent = origins.length + ' land';
 }
 
+// ── Mobile live indicator ──────────────────────────────────────────────────
+function updateMobileLive() {
+  const dot = document.getElementById('mobile-live-dot');
+  if (!dot) return;
+  const ripe = document.getElementById('ripe-dot').classList.contains('live');
+  const cfEl = document.getElementById('cf-dot');
+  dot.classList.toggle('live', ripe && (!cfEl || cfEl.classList.contains('live')));
+}
+
 // ── State ──────────────────────────────────────────────────────────────────
 let noAsns = {};
 
@@ -567,15 +578,23 @@ function applySnapshot(data) {
     document.getElementById('stat-avg-l7').textContent = avgL7.toFixed(2);
     document.getElementById('stat-avg-l3').textContent = avgL3.toFixed(2);
 
-    const baseline = radar.attack_baseline_24h || 0;
-    const current = radar.current_attack_intensity || 0;
+    const l7Current = radar.current_attack_intensity || 0;
+    const l7Base = radar.attack_baseline_24h || 0;
+    const l3Vals = (radar.layer3_timeseries || []).map(p => p.value);
+    const l3Current = l3Vals.length ? l3Vals[l3Vals.length - 1] : 0;
+    const l3Base = l3Vals.length ? l3Vals.reduce((s, v) => s + v, 0) / l3Vals.length : 0;
+    const current = Math.max(l7Current, l3Current);
+    const baseline = Math.max(l7Base, l3Base);
+    const l3Dominant = l3Current > l7Current * 1.1;
+    const l7Dominant = l7Current > l3Current * 1.1;
+    const layerLabel = l3Dominant ? 'L3/4' : l7Dominant ? 'L7' : 'DDoS';
     const deltaEl = document.getElementById('stat-vs-avg');
     const ddosDelta = document.getElementById('ddos-delta');
     if (baseline > 0) {
       const delta = Math.round((current / baseline - 1) * 100);
       deltaEl.textContent = (delta >= 0 ? '+' : '') + delta;
       deltaEl.closest('.stat-val-row').querySelector('.stat-num').style.color = delta > 0 ? 'var(--red)' : 'var(--green)';
-      ddosDelta.textContent = delta > 0 ? `+${delta}% over snitt` : `${Math.abs(delta)}% under snitt`;
+      ddosDelta.textContent = delta > 0 ? `+${delta}% over snitt (${layerLabel})` : `${Math.abs(delta)}% under snitt (${layerLabel})`;
       ddosDelta.style.color = delta > 0 ? 'var(--red)' : 'var(--green)';
     }
   }
@@ -592,7 +611,7 @@ function applySnapshot(data) {
   document.getElementById('chart-updated').textContent = `oppdatert ${new Date().toLocaleTimeString('nb-NO', {hour:'2-digit',minute:'2-digit'})}`;
 
   // Cloudflare indicator
-  if (radar.last_updated) document.getElementById('cf-dot').classList.add('live');
+  if (radar.last_updated) { document.getElementById('cf-dot').classList.add('live'); updateMobileLive(); }
 }
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
@@ -601,7 +620,7 @@ function connect() {
   if (ws) { ws.onclose = null; ws.close(); }
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   ws = new WebSocket(`${proto}://${location.host}/ws`);
-  ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
+  ws.onopen = () => { document.getElementById('ripe-dot').classList.add('live'); updateMobileLive(); };
   ws.onmessage = e => {
     const msg = JSON.parse(e.data);
     if (msg.type === 'state_snapshot' || msg.type === 'radar_update') {
@@ -613,6 +632,7 @@ function connect() {
   };
   ws.onclose = () => {
     document.getElementById('ripe-dot').classList.remove('live');
+    updateMobileLive();
     setTimeout(connect, 3000);
   };
   ws.onerror = () => ws.close();

@@ -237,7 +237,7 @@
     }
     @media (max-width: 600px) { .asn-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 480px) { .asn-grid { grid-template-columns: 1fr; } .hero-h1 { font-size: 22px; } .hero-stats { display: grid; grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 700px) { .nav-right .status-indicator { display: none; } #refresh-area { display: none !important; } }
+    @media (max-width: 700px) { .nav-right .status-indicator { display: none; } #mobile-live-ind { display: inline-flex !important; } #refresh-area { display: none !important; } }
   </style>
   <script defer src="https://umami.nettradar.no/script.js" data-website-id="1c7c3c7e-4456-4d21-8837-d4dab429f5ab"></script>
 </head>
@@ -265,7 +265,8 @@
   </div>
   <span style="flex:1"></span>
   <div class="nav-right">
-    <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE RIS</span></span>
+    <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE</span></span>
+    <span class="status-indicator" id="mobile-live-ind" style="display:none"><span class="status-dot" id="mobile-live-dot"></span><span style="font-size:10.5px;letter-spacing:.8px">LIVE</span></span>
     <span id="refresh-area" style="display:flex;align-items:center;gap:5px">
       <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">--:--</span>
       <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--dimmer);display:flex;align-items:center" aria-label="Oppdater siden nå">
@@ -306,11 +307,11 @@
   </h1>
   <div class="hero-stats">
     <div class="stat-block">
-      <div class="stat-label">Annons / min</div>
+      <div class="stat-label">Annons/min (60 sek)</div>
       <div class="stat-num" id="stat-ann-rate">—</div>
     </div>
     <div class="stat-block">
-      <div class="stat-label">Tilbaketrekk / min</div>
+      <div class="stat-label">Trekk/min (60 sek)</div>
       <div class="stat-num" id="stat-wd-rate">—</div>
     </div>
     <div class="stat-block">
@@ -332,7 +333,7 @@
 <div class="section">
   <div class="section-header">
     <span class="section-title">Per ASN</span>
-    <span class="section-sub">BGP-aktivitet per ASN</span>
+    <span class="section-sub" id="asn-activity-count">BGP-aktivitet per ASN</span>
     <span style="flex:1"></span>
     <span style="font-size:11px;color:var(--dim);display:inline-flex;align-items:center;gap:5px">
       <span style="width:8px;height:8px;border-radius:4px;background:var(--red);flex-shrink:0"></span>
@@ -455,20 +456,25 @@ document.getElementById('raw-details').addEventListener('toggle', function() {
 });
 
 // ── State ──────────────────────────────────────────────────────────────────
-const SESSION_START = Date.now();
 let noAsns = {};
 let radarData = {};
 let asnStats = {};
 let logEvents = [];
 let sparkBuckets = {};
 
-function sessionMinutes() { return Math.max(1/60, (Date.now() - SESSION_START) / 60000); }
+const ANN_BUF = [];
+const WD_BUF  = [];
 
-function rateStr(n) {
-  const r = n / sessionMinutes();
-  if (r < 0.05) return '0';
-  if (r < 10) return r.toFixed(1);
-  return Math.round(r).toLocaleString('nb-NO');
+function rollingCount(buf) {
+  const cutoff = Date.now() - 60000;
+  while (buf.length && buf[0].ts < cutoff) buf.shift();
+  return buf.length;
+}
+
+function updateMobileLive() {
+  const dot = document.getElementById('mobile-live-dot');
+  if (!dot) return;
+  dot.classList.toggle('live', document.getElementById('ripe-dot').classList.contains('live'));
 }
 
 function timeAgo(ms) {
@@ -590,6 +596,11 @@ function renderAsnGrid() {
     })
     .slice(0, 60);
 
+  const withActivity = sorted.filter(({ asn }) => flagMap[asn] || ((asnStats[asn] || {}).updates || 0) + ((asnStats[asn] || {}).withdraws || 0) > 0).length;
+  const silentCount = sorted.length - withActivity;
+  const actEl = document.getElementById('asn-activity-count');
+  if (actEl) actEl.textContent = `${sorted.length} ASN · ${withActivity} aktive · ${silentCount} stille`;
+
   grid.innerHTML = sorted.map(({ asn }) => {
     const name = noAsns[asn] || `AS${asn}`;
     const s = asnStats[asn] || { updates: 0, withdraws: 0, hijacks: 0, sparkData: new Array(30).fill(0), prefixes: new Set(), lastSeen: null };
@@ -638,7 +649,13 @@ function renderSignificant() {
   if (countEl) countEl.textContent = `${rows.length} flagget`;
 
   if (!rows.length) {
-    table.innerHTML = '<div class="sig-empty">Ingen flaggede hendelser</div>';
+    table.innerHTML = `<div style="background:rgba(79,213,138,.05);border:1px solid rgba(79,213,138,.12);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:10px;margin:4px">
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="width:7px;height:7px;border-radius:3.5px;background:var(--green);flex-shrink:0;animation:c-pulse 2.5s ease-in-out infinite"></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.6px;color:var(--green)">ALT OK</span>
+      </div>
+      <div style="font-size:13px;color:var(--dim);line-height:1.5">Ingen flaggede hendelser siste 24 t.</div>
+    </div>`;
     return;
   }
   table.innerHTML = rows.map(e => {
@@ -714,8 +731,8 @@ function processEvent(e, addToLog = true) {
     };
     const s = asnStats[asn];
     if (noAsns[asn]) s.name = noAsns[asn];
-    if (e.event_type === 'announcement') s.updates++;
-    else if (e.event_type === 'withdrawal') s.withdraws++;
+    if (e.event_type === 'announcement') { s.updates++; if (addToLog) ANN_BUF.push({ ts: Date.now() }); }
+    else if (e.event_type === 'withdrawal') { s.withdraws++; if (addToLog) WD_BUF.push({ ts: Date.now() }); }
     else if (e.event_type === 'hijack') s.hijacks++;
     s.lastSeen = Date.now();
     if (e.prefix) s.prefixes.add(e.prefix);
@@ -725,12 +742,10 @@ function processEvent(e, addToLog = true) {
 
 // ── Update hero rate stats ─────────────────────────────────────────────────
 function updateRateStats() {
-  const totalAnn = Object.values(asnStats).reduce((s,r) => s + r.updates, 0);
-  const totalWd  = Object.values(asnStats).reduce((s,r) => s + r.withdraws, 0);
   const annEl = document.getElementById('stat-ann-rate');
   const wdEl  = document.getElementById('stat-wd-rate');
-  if (annEl) annEl.textContent = rateStr(totalAnn);
-  if (wdEl)  wdEl.textContent  = rateStr(totalWd);
+  if (annEl) annEl.textContent = rollingCount(ANN_BUF).toLocaleString('nb-NO');
+  if (wdEl)  wdEl.textContent  = rollingCount(WD_BUF).toLocaleString('nb-NO');
 }
 
 // ── Apply snapshot ─────────────────────────────────────────────────────────
@@ -781,7 +796,7 @@ function connect() {
   if (ws) { ws.onclose = null; ws.close(); }
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   ws = new WebSocket(`${proto}://${location.host}/ws`);
-  ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
+  ws.onopen = () => { document.getElementById('ripe-dot').classList.add('live'); updateMobileLive(); };
   ws.onmessage = ev => {
     const msg = JSON.parse(ev.data);
     if (msg.type === 'state_snapshot') {
@@ -806,7 +821,7 @@ function connect() {
       markUpdated();
     }
   };
-  ws.onclose = () => { document.getElementById('ripe-dot').classList.remove('live'); setTimeout(connect, 3000); };
+  ws.onclose = () => { document.getElementById('ripe-dot').classList.remove('live'); updateMobileLive(); setTimeout(connect, 3000); };
   ws.onerror = () => ws.close();
 }
 

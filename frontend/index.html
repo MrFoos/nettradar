@@ -233,10 +233,10 @@
       .nav-links { display: none; }
       .hamburger-btn { display: flex; }
     }
-    /* Bare green dots without labels are noise — hide both indicators on phones */
     @media (max-width: 700px) {
       .nav-right .status-indicator { display: none; }
       #refresh-area { display: none !important; }
+      #mobile-live-ind { display: inline-flex !important; }
     }
     .skip-link {
       position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
@@ -293,6 +293,7 @@
   <div class="nav-right">
     <span class="status-indicator"><span class="status-dot" id="ripe-dot"></span><span class="status-label">RIPE</span></span>
     <span class="status-indicator"><span class="status-dot" id="cf-dot"></span><span class="status-label">Cloudflare</span></span>
+    <span class="status-indicator" id="mobile-live-ind" style="display:none"><span class="status-dot" id="mobile-live-dot"></span><span style="font-size:10.5px;letter-spacing:.8px">LIVE</span></span>
     <span id="refresh-area" style="display:flex;align-items:center;gap:5px">
       <span id="refresh-cd" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dimmer)">--:--</span>
       <button id="refresh-btn" onclick="triggerRefresh()" title="Oppdater nå" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--dimmer);display:flex;align-items:center" aria-label="Oppdater dashboardet nå">
@@ -329,16 +330,12 @@
       <div class="stat-val-row"><span class="stat-num" id="stat-epm">—</span><span class="stat-unit">/min</span></div>
     </div>
     <div>
-      <div class="stat-label">Aktive ASN</div>
+      <div class="stat-label">Overvåkede ASN</div>
       <div class="stat-val-row"><span class="stat-num" id="stat-asns">—</span></div>
     </div>
     <div>
       <div class="stat-label">Norske prefikser</div>
       <div class="stat-val-row"><span class="stat-num" id="stat-prefixes">—</span></div>
-    </div>
-    <div>
-      <div class="stat-label">Uptime</div>
-      <div class="stat-val-row"><span class="stat-num" id="stat-uptime">99.97</span><span class="stat-unit">%</span></div>
     </div>
   </div>
 </div>
@@ -742,6 +739,15 @@ function renderTimelineStrip(radar) {
     </div>`;
 }
 
+// ── Mobile live indicator ──────────────────────────────────────────────────
+function updateMobileLive() {
+  const dot = document.getElementById('mobile-live-dot');
+  if (!dot) return;
+  const ripe = document.getElementById('ripe-dot').classList.contains('live');
+  const cfEl = document.getElementById('cf-dot');
+  dot.classList.toggle('live', ripe && (!cfEl || cfEl.classList.contains('live')));
+}
+
 // ── State update ───────────────────────────────────────────────────────────
 let noAsns = {};
 
@@ -768,9 +774,17 @@ function applySnapshot(data) {
 
 
 
-  // DDoS delta
-  const baseline = radar.attack_baseline_24h || 0;
-  const current = radar.current_attack_intensity || 0;
+  // DDoS delta — max(L7, L3) for both current and baseline
+  const l7Current = radar.current_attack_intensity || 0;
+  const l7Base = radar.attack_baseline_24h || 0;
+  const l3Vals = (radar.layer3_timeseries || []).map(p => p.value);
+  const l3Current = l3Vals.length ? l3Vals[l3Vals.length - 1] : 0;
+  const l3Base = l3Vals.length ? l3Vals.reduce((s, v) => s + v, 0) / l3Vals.length : 0;
+  const current = Math.max(l7Current, l3Current);
+  const baseline = Math.max(l7Base, l3Base);
+  const l3Dominant = l3Current > l7Current * 1.1;
+  const l7Dominant = l7Current > l3Current * 1.1;
+  const layerLabel = l3Dominant ? 'L3/4-aktivitet' : l7Dominant ? 'L7-aktivitet' : 'DDoS-aktivitet';
   const deltaEl = document.getElementById('ddos-delta');
   if (baseline > 0) {
     const delta = Math.round((current / baseline - 1) * 100);
@@ -788,9 +802,9 @@ function applySnapshot(data) {
       const countStr = alerts.length > 0
         ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> sikkerhetshendelser detektert siste 24 t.`
         : 'Ingen sikkerhetshendelser detektert siste 24 t.';
-      heroEl.innerHTML = `DDoS-aktivitet ligger <span class="acc" style="color:${ddosColor}">${absDelta}%</span> over snitt. ${countStr}`;
+      heroEl.innerHTML = `${layerLabel} ligger <span class="acc" style="color:${ddosColor}">${absDelta}%</span> over snitt. ${countStr}`;
     } else {
-      heroEl.innerHTML = `DDoS-aktivitet er <span class="acc" style="color:var(--green)">${absDelta}%</span> under snitt. Ingen aktive sikkerhetsvarsler.`;
+      heroEl.innerHTML = `${layerLabel} er <span class="acc" style="color:var(--green)">${absDelta}%</span> under snitt. Ingen aktive sikkerhetsvarsler.`;
     }
   }
 
@@ -808,7 +822,7 @@ function applySnapshot(data) {
   renderHendelser(alerts, outages, anomalies, noAsns);
 
   // Cloudflare indicator
-  if (radar.last_updated) document.getElementById('cf-dot').classList.add('live');
+  if (radar.last_updated) { document.getElementById('cf-dot').classList.add('live'); updateMobileLive(); }
 }
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
@@ -817,7 +831,7 @@ function connect() {
   if (ws) { ws.onclose = null; ws.close(); }
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   ws = new WebSocket(`${proto}://${location.host}/ws`);
-  ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
+  ws.onopen = () => { document.getElementById('ripe-dot').classList.add('live'); updateMobileLive(); };
   ws.onmessage = e => {
     const msg = JSON.parse(e.data);
     if (msg.type === 'state_snapshot') { applySnapshot(msg.data); saveSnapshot(msg.data); markUpdated(); }
@@ -831,6 +845,7 @@ function connect() {
   };
   ws.onclose = () => {
     document.getElementById('ripe-dot').classList.remove('live');
+    updateMobileLive();
     setTimeout(connect, 3000);
   };
   ws.onerror = () => ws.close();
