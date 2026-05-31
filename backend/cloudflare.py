@@ -7,7 +7,7 @@ from datetime import datetime
 import aiohttp
 
 from . import state
-from .models import AttackASOrigin, AttackDataPoint, AttackOrigin, BGPEvent, HijackAlert, OutageEvent, RadarState, RouteLeak, TrafficAnomaly, TrafficAnomalyEvent
+from .models import AttackASOrigin, AttackDataPoint, AttackOrigin, BandwidthPoint, BGPEvent, HijackAlert, OutageEvent, RadarState, RouteLeak, TrafficAnomaly, TrafficAnomalyEvent, TrafficPoint
 
 _seen_hijack_keys: set[tuple] = set()
 
@@ -72,6 +72,18 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
         session, "/attacks/layer3/timeseries",
         {"location": "NO", "dateRange": "1d", "aggInterval": "1h"}
     )
+    bw_result = await _get(
+        session, "/quality/iqi/timeseries_groups",
+        {"location": "NO", "metric": "BANDWIDTH", "dateRange": "1d", "aggInterval": "1h"}
+    )
+    http_result = await _get(
+        session, "/http/timeseries",
+        {"location": "NO", "dateRange": "7d", "aggInterval": "1h"}
+    )
+    bot_result = await _get(
+        session, "/http/timeseries_groups/bot_class",
+        {"location": "NO", "dateRange": "1d", "aggInterval": "1h"}
+    )
     hijack_result = await _get(session, "/bgp/hijacks/events", {"per_page": "50", "dateRange": "1d"})
     leak_result = await _get(session, "/bgp/leaks/events", {"per_page": "30", "dateRange": "1d"})
     origins_result = await _get(
@@ -87,12 +99,12 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
         {"location": "NO", "limit": "15", "dateRange": "1d"}
     )
     outages_result = await _get(
-        session, "/outages",
+        session, "/annotations/outages",
         {"location": "NO", "dateRange": "1d", "limit": "50"}
     )
     traffic_anomalies_result = await _get(
-        session, "/traffic-anomalies",
-        {"location": "NO", "status": "ANOMALOUS", "limit": "50"}
+        session, "/traffic_anomalies",
+        {"location": "NO", "limit": "50"}
     )
 
     timeseries: list[AttackDataPoint] = []
@@ -119,6 +131,34 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
         layer3_timeseries = [
             AttackDataPoint(timestamp=t, value=float(v))
             for t, v in zip(ts3, v3)
+        ]
+
+    bandwidth_timeseries: list[BandwidthPoint] = []
+    if bw_result:
+        s = bw_result.get("serie_0", {})
+        bw_ts = s.get("timestamps", [])
+        bandwidth_timeseries = [
+            BandwidthPoint(timestamp=t, p25=float(p25), p50=float(p50), p75=float(p75))
+            for t, p25, p50, p75 in zip(bw_ts, s.get("p25", []), s.get("p50", []), s.get("p75", []))
+        ]
+
+    http_timeseries: list[TrafficPoint] = []
+    http_timeseries_prev: list[TrafficPoint] = []
+    if http_result:
+        s = http_result.get("serie_0", {})
+        all_pts = [
+            TrafficPoint(timestamp=t, value=float(v))
+            for t, v in zip(s.get("timestamps", []), s.get("values", []))
+        ]
+        http_timeseries = all_pts[-24:] if len(all_pts) >= 24 else all_pts
+        http_timeseries_prev = all_pts[:24] if len(all_pts) >= 48 else []
+
+    bot_timeseries: list[AttackDataPoint] = []
+    if bot_result:
+        s = bot_result.get("serie_0", {})
+        bot_timeseries = [
+            AttackDataPoint(timestamp=t, value=float(v))
+            for t, v in zip(s.get("timestamps", []), s.get("bot", []))
         ]
 
     hijacks: list[HijackAlert] = []
@@ -212,20 +252,23 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
 
     active_outages: list[OutageEvent] = []
     if outages_result:
-        raw_outages = outages_result.get("outages", [])
+        raw_outages = outages_result.get("annotations", [])
         logger.info("Cloudflare outages: %d events from API", len(raw_outages))
         for i, ev in enumerate(raw_outages):
-            asn_info = ev.get("asnDetails", ev.get("asn", {})) or {}
-            asn_id = asn_info.get("asn") or ev.get("asnId")
-            asn_name = asn_info.get("name") or ev.get("asnName")
+            locs = ev.get("locations", [])
+            loc = locs[0].get("locationAlpha2", "NO") if locs else "NO"
+            asns = ev.get("asns", [])
+            asn_id = asns[0].get("asn") if asns else None
+            asn_name = asns[0].get("name") if asns else None
+            outage_info = ev.get("outage", {}) or {}
             active_outages.append(OutageEvent(
                 id=ev.get("id", str(i)),
-                location=ev.get("locationAlpha2", ev.get("location", "NO")),
+                location=loc,
                 asn=int(asn_id) if asn_id else None,
                 asn_name=asn_name,
-                start_time=ev.get("startDate", ev.get("start_time", "")),
-                end_time=ev.get("endDate", ev.get("end_time")) or None,
-                type=ev.get("type", "unknown"),
+                start_time=ev.get("startDate", ""),
+                end_time=ev.get("endDate") or None,
+                type=ev.get("eventType", outage_info.get("outageType", "unknown")),
                 description=ev.get("description"),
             ))
 
@@ -277,6 +320,10 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
     new_state = RadarState(
         attack_timeseries=timeseries,
         layer3_timeseries=layer3_timeseries,
+        bandwidth_timeseries=bandwidth_timeseries,
+        http_timeseries=http_timeseries,
+        http_timeseries_prev=http_timeseries_prev,
+        bot_timeseries=bot_timeseries,
         hijack_alerts=hijacks,
         route_leaks=leaks,
         anomalies=anomalies,
