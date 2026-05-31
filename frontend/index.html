@@ -314,6 +314,8 @@
     .dd-delta-stack { display: flex; flex-direction: column; gap: 3px; margin-left: auto; }
     .dd-delta-row   { display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
     .dd-delta-tag   { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: .8px; color: var(--dimmer); }
+    .dd-delta-tag.l7 { color: var(--amber); background: rgba(245,185,66,.14); border-radius: 3px; padding: 1px 4px; }
+    .dd-delta-tag.l3 { color: var(--red);   background: rgba(255,107,91,.14); border-radius: 3px; padding: 1px 4px; }
     .dd-delta-val   { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .spinner {
       width: 28px; height: 28px; border-radius: 50%;
@@ -420,8 +422,8 @@
         <span class="graph-card-title">DDoS-aktivitet</span>
         <a href="/ddos" class="graph-card-sub" style="text-decoration:none">normalisert intensitet →</a>
         <div class="dd-delta-stack" id="stat-ddos">
-          <div class="dd-delta-row"><span class="dd-delta-tag">L7</span><span class="dd-delta-val" id="stat-ddos-l7">—</span></div>
-          <div class="dd-delta-row"><span class="dd-delta-tag">L3/4</span><span class="dd-delta-val" id="stat-ddos-l3">—</span></div>
+          <div class="dd-delta-row"><span class="dd-delta-tag l7">L7</span><span class="dd-delta-val" id="stat-ddos-l7">—</span></div>
+          <div class="dd-delta-row"><span class="dd-delta-tag l3">L3/4</span><span class="dd-delta-val" id="stat-ddos-l3">—</span></div>
         </div>
       </div>
       <div class="graph-card-body" id="wrap-ddos">
@@ -444,8 +446,8 @@
         <svg id="svg-bw" style="display:block;width:100%;height:100%"></svg>
       </div>
       <div class="graph-card-legend">
-        <span class="leg-item"><span class="leg-line" style="background:var(--blue)"></span>Median (p50)</span>
-        <span class="leg-item"><span class="leg-swatch" style="background:var(--blue);opacity:.25"></span>p25–p75</span>
+        <span class="leg-item"><span class="leg-line" style="background:var(--blue)"></span><span id="leg-bw-median">Median (p50)</span></span>
+        <span class="leg-item"><span class="leg-swatch" style="background:var(--blue);opacity:.25"></span><span id="leg-bw-range">p25–p75</span></span>
       </div>
     </div>
 
@@ -488,7 +490,7 @@
 <div class="source-footer">
   <div class="source-footer-label">Kilder</div>
   <div class="source-footer-items">
-    <div><strong>Cloudflare Radar</strong> — DDoS-intensitet, nettavbrudd, trafikkavvik, klassifisering av BGP-kapringer og rutelekkasjer</div>
+    <div><strong>Cloudflare Radar</strong> — DDoS-intensitet (L7 / L3-4), HTTP-trafikkvolum (siste uke mot forrige), estimert båndbredde (IQI · median + p25–p75), menneske/bot-andel, samt nettavbrudd og trafikkavvik for varsler</div>
     <div><strong>RIPE RIS</strong> — Live BGP-meldinger (UPDATE/WITHDRAW). Nettradar detekterer BGP-kapringer der ikke-norske ASN-er annonserer norske prefikser.</div>
   </div>
 </div>
@@ -1042,17 +1044,23 @@ function applySnapshot(data) {
   chartHttpPrev = radar.http_timeseries_prev || [];
   chartBot      = radar.bot_timeseries || [];
 
-  if (chartBw.length)   setText('stat-bw',   `${chartBw.at(-1).p50.toFixed(0)} Mbps`);
+  if (chartBw.length) {
+    const lastBw = chartBw.at(-1);
+    setText('stat-bw', `median ${lastBw.p50.toFixed(0)} Mbps`);
+    const legBwMedian = document.getElementById('leg-bw-median');
+    const legBwRange  = document.getElementById('leg-bw-range');
+    if (legBwMedian) legBwMedian.textContent = `median ${lastBw.p50.toFixed(0)} Mbps`;
+    if (legBwRange)  legBwRange.textContent  = `p25–p75  ${lastBw.p25.toFixed(0)}–${lastBw.p75.toFixed(0)} Mbps`;
+  }
   if (chartBot.length)  setText('stat-bot',  `${chartBot.at(-1).value.toFixed(0)} % bot`);
   if (chartHttp.length >= 2) {
-    const httpPrevAvg = chartHttpPrev.length
-      ? chartHttpPrev.reduce((s, p) => s + p.value, 0) / chartHttpPrev.length
-      : chartHttp.reduce((s, p) => s + p.value, 0) / chartHttp.length;
-    const httpLast = chartHttp.at(-1).value;
-    const httpDelta = httpPrevAvg > 0 ? Math.round((httpLast / httpPrevAvg - 1) * 100) : null;
+    const meanVal = arr => arr.reduce((s, p) => s + p.value, 0) / arr.length;
+    const httpCurrAvg = meanVal(chartHttp);
+    const httpPrevAvg = chartHttpPrev.length ? meanVal(chartHttpPrev) : httpCurrAvg;
+    const httpDelta = httpPrevAvg > 0 ? Math.round((httpCurrAvg - httpPrevAvg) / httpPrevAvg * 100) : null;
     if (httpDelta !== null) {
       const httpStat = document.getElementById('stat-http');
-      if (httpStat) { httpStat.textContent = fmtDelta(httpDelta); httpStat.style.color = 'var(--dim)'; }
+      if (httpStat) { httpStat.textContent = fmtDelta(httpDelta) + ' vs. forrige uke'; httpStat.style.color = httpDelta > 0 ? 'var(--green)' : httpDelta < 0 ? 'var(--red)' : 'var(--dim)'; }
     }
   }
 
@@ -1079,7 +1087,14 @@ function connect() {
       chartHttp     = r.http_timeseries || [];
       chartHttpPrev = r.http_timeseries_prev || [];
       chartBot      = r.bot_timeseries || [];
-      if (chartBw.length)  setText('stat-bw',  `${chartBw.at(-1).p50.toFixed(0)} Mbps`);
+      if (chartBw.length) {
+        const lastBw = chartBw.at(-1);
+        setText('stat-bw', `median ${lastBw.p50.toFixed(0)} Mbps`);
+        const legBwMedian = document.getElementById('leg-bw-median');
+        const legBwRange  = document.getElementById('leg-bw-range');
+        if (legBwMedian) legBwMedian.textContent = `median ${lastBw.p50.toFixed(0)} Mbps`;
+        if (legBwRange)  legBwRange.textContent  = `p25–p75  ${lastBw.p25.toFixed(0)}–${lastBw.p75.toFixed(0)} Mbps`;
+      }
       if (chartBot.length) setText('stat-bot', `${chartBot.at(-1).value.toFixed(0)} % bot`);
       // DDoS delta per serie
       const ru7c = r.current_attack_intensity || 0;
@@ -1094,14 +1109,13 @@ function connect() {
       if (rul3el) { rul3el.textContent = fmtDelta(rul3d); rul3el.style.color = colDelta(rul3d); }
       // HTTP delta
       if (chartHttp.length >= 2) {
-        const rpAvg = chartHttpPrev.length
-          ? chartHttpPrev.reduce((s, p) => s + p.value, 0) / chartHttpPrev.length
-          : chartHttp.reduce((s, p) => s + p.value, 0) / chartHttp.length;
-        const rpLast = chartHttp.at(-1).value;
-        const rpDelta = rpAvg > 0 ? Math.round((rpLast / rpAvg - 1) * 100) : null;
+        const meanVal = arr => arr.reduce((s, p) => s + p.value, 0) / arr.length;
+        const rpCurrAvg = meanVal(chartHttp);
+        const rpAvg = chartHttpPrev.length ? meanVal(chartHttpPrev) : rpCurrAvg;
+        const rpDelta = rpAvg > 0 ? Math.round((rpCurrAvg - rpAvg) / rpAvg * 100) : null;
         if (rpDelta !== null) {
           const httpStat = document.getElementById('stat-http');
-          if (httpStat) { httpStat.textContent = fmtDelta(rpDelta); httpStat.style.color = 'var(--dim)'; }
+          if (httpStat) { httpStat.textContent = fmtDelta(rpDelta) + ' vs. forrige uke'; httpStat.style.color = rpDelta > 0 ? 'var(--green)' : rpDelta < 0 ? 'var(--red)' : 'var(--dim)'; }
         }
       }
       renderGraphs();
