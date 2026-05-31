@@ -76,9 +76,25 @@ class RouteLeak(BaseModel):
     detected_at: str
 
 
+class BandwidthPoint(BaseModel):
+    timestamp: str
+    p25: float
+    p50: float
+    p75: float
+
+
+class TrafficPoint(BaseModel):
+    timestamp: str
+    value: float
+
+
 class RadarState(BaseModel):
     attack_timeseries: list[AttackDataPoint] = []
     layer3_timeseries: list[AttackDataPoint] = []
+    bandwidth_timeseries: list[BandwidthPoint] = []
+    http_timeseries: list[TrafficPoint] = []
+    http_timeseries_prev: list[TrafficPoint] = []
+    bot_timeseries: list[AttackDataPoint] = []
     hijack_alerts: list[HijackAlert] = []
     route_leaks: list[RouteLeak] = []
     anomalies: list[TrafficAnomaly] = []

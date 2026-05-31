@@ -36,12 +36,12 @@
     :root {
       --bg: #0a0a0c; --text: #f5f5f7; --dim: #a8a8b3; --dimmer: #7a7a8a;
       --card: #0f0f12; --card-elevated: #13131a; --border: rgba(255,255,255,0.07);
-      --accent: #d4d4dc; --red: #ff6b5b; --amber: #f5b942; --green: #4fd58a; --blue: #7cb6ff;
+      --accent: #d4d4dc; --red: #ff6b5b; --amber: #f5b942; --green: #4fd58a; --blue: #7cb6ff; --violet: #b892f0;
     }
     [data-theme="light"] {
       --bg: #f7f6f3; --text: #15151a; --dim: #5a5a63; --dimmer: #8a8a93;
       --card: #ffffff; --card-elevated: #ffffff; --border: rgba(15,15,26,0.10);
-      --accent: #15151a; --red: #d83a2e; --amber: #b87a0c; --green: #1f7a3e; --blue: #1e5fc9;
+      --accent: #15151a; --red: #d83a2e; --amber: #b87a0c; --green: #1f7a3e; --blue: #1e5fc9; --violet: #6b28d9;
     }
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -142,40 +142,62 @@
     .stat-num { font-size: 26px; font-weight: 500; letter-spacing: -.8px; font-variant-numeric: tabular-nums; line-height: 1; }
     .stat-unit { font-size: 13px; color: var(--dim); }
 
-    /* QUAD GRID */
-    .quad-grid {
-      display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
-      border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
-      margin: 0 40px 40px; min-height: 640px;
+    /* GRAF-SEKSJON */
+    .graph-section { margin: 0 40px 40px; }
+    .grid-head { display: flex; align-items: baseline; gap: 12px; padding-bottom: 10px; }
+    .grid-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text); }
+    .grid-range {
+      margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim);
+      border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px 5px 11px;
     }
-    .quad { padding: 24px; display: flex; flex-direction: column; }
-    #quad-sikkerhet { border-left: 1px solid var(--border); }
-    #quad-tilgjengelighet { border-top: 1px solid var(--border); }
-    #quad-trafikkavvik { border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
-    .quad-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; flex-shrink: 0; }
-    .quad-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text); }
-    .quad-sub { font-size: 11.5px; color: var(--dim); }
-    .quad-stat { font-size: 12px; font-weight: 600; }
-    .ddos-delta-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: 1.2; flex-shrink: 0; }
-    .ddos-delta-row { display: flex; align-items: baseline; gap: 8px; }
-    .ddos-delta-tag { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; padding: 2px 6px; border-radius: 3px; text-align: center; flex-shrink: 0; }
-    .ddos-delta-tag.l7  { color: var(--amber); background: rgba(245,185,66,.14); }
-    .ddos-delta-tag.l3  { color: var(--red);   background: rgba(255,107,91,.14); }
-    [data-theme="light"] .ddos-delta-tag.l7 { background: rgba(184,122,12,.12); }
-    [data-theme="light"] .ddos-delta-tag.l3 { background: rgba(216,58,46,.10); }
-    .ddos-delta-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 48px; text-align: right; }
-    .quad-body { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-    .quad-footer { padding-top: 10px; margin-top: auto; }
+    .grid-range::before {
+      content: ""; width: 6px; height: 6px; border-radius: 3px;
+      background: var(--green); flex-shrink: 0; animation: c-pulse 2.5s ease-in-out infinite;
+    }
+    .graph-grid {
+      display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+      gap: 14px; min-height: 640px;
+    }
+    .graph-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .graph-card-header {
+      padding: 14px 18px 10px; display: flex; align-items: baseline;
+      gap: 10px; border-bottom: 1px solid var(--border);
+    }
+    .graph-card-title { font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text); }
+    .graph-card-sub { font-size: 11.5px; color: var(--dim); }
+    .graph-card-stat { margin-left: auto; font-size: 12px; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    .graph-card-body { flex: 1; min-height: 0; padding: 12px 18px 0; position: relative; }
+    .graph-card-legend {
+      display: flex; gap: 14px; padding: 8px 18px 14px;
+      font-size: 11px; color: var(--dim); align-items: center;
+    }
+    /* VARSELBOKS */
+    #alertbox-wrap {
+      margin: 0 40px 16px; border: 1px solid rgba(255,107,91,.25);
+      border-left: 3px solid var(--red); border-radius: 12px;
+      overflow: hidden; background: rgba(255,107,91,.04);
+    }
+    [data-theme="light"] #alertbox-wrap { background: rgba(216,58,46,.03); }
+    .alertbox-header {
+      padding: 12px 18px; display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,107,91,.15);
+    }
+    .alertbox-dot {
+      width: 7px; height: 7px; border-radius: 3.5px; background: var(--red);
+      flex-shrink: 0; animation: c-pulse 2.5s ease-in-out infinite;
+    }
+    .alertbox-title { font-size: 10px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--red); }
+    .alertbox-sub { font-size: 11.5px; color: var(--dim); }
+    .alertbox-count { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--red); font-weight: 600; }
+    .alertbox-cols { padding: 16px 18px; display: grid; gap: 16px; }
 
     /* ITEM CARDS (reused across quad bodies) */
     .col-item-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:6px; position:relative; overflow:hidden; }
 
-    /* INCIDENT BANNER */
-    #incident-banner:not(:empty) {
-      background: rgba(255,107,91,.08); border-bottom: 1px solid rgba(255,107,91,.2);
-      padding: 9px 40px; display: flex; align-items: center; gap: 10px; font-size: 13px;
-    }
-    @media (max-width: 960px) { #incident-banner:not(:empty) { padding: 9px 20px; } }
     .card {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; min-height: 220px;
@@ -183,13 +205,13 @@
     .card-header { padding: 14px 20px 10px; display: flex; align-items: baseline; gap: 10px; border-bottom: 1px solid var(--border); }
     .card-title { font-size: 13.5px; font-weight: 600; letter-spacing: -.1px; }
     .card-sub { font-size: 11px; color: var(--dim); }
-    .chart-wrap { flex: 1; min-height: 160px; padding: 12px 18px 0; position: relative; }
     .chart-legend {
       display: flex; gap: 16px; padding: 8px 20px 14px;
       font-size: 11px; color: var(--dim); align-items: center;
     }
     .leg-item { display: inline-flex; align-items: center; gap: 6px; }
     .leg-line { width: 14px; height: 2px; flex-shrink: 0; }
+    .leg-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
     .bars-list { padding: 14px 20px 18px; display: flex; flex-direction: column; overflow: hidden; flex: 1; gap: 2px; }
     .bar-row { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
     .bar-asn { font-family: 'JetBrains Mono', monospace; color: var(--dim); width: 72px; font-size: 13px; flex-shrink: 0; }
@@ -219,19 +241,21 @@
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     @media (max-width: 1100px) {
-      .quad-grid { grid-template-columns: 1fr; grid-template-rows: auto; min-height: unset; margin: 0 20px 32px; }
-      #quad-sikkerhet { border-left: none; border-top: 1px solid var(--border); }
-      #quad-trafikkavvik { border-left: none; }
+      .graph-grid { grid-template-columns: 1fr; grid-template-rows: auto; min-height: unset; }
     }
     @media (max-width: 960px) {
       .hero { padding: 28px 20px 20px; }
       .hero-h1 { font-size: 38px; letter-spacing: -1.4px; }
       .hero-stats { flex-wrap: wrap; gap: 24px 32px; }
       .nav { padding: 18px 20px 14px; gap: 14px; }
+      .graph-section { margin: 0 20px 32px; }
+      #alertbox-wrap { margin: 0 20px 16px; }
     }
     @media (max-width: 700px) {
-      .quad-grid { margin: 0; border-radius: 0; border-left: none; border-right: none; }
-      .quad { padding: 18px 20px; }
+      .graph-section { margin: 0; }
+      .graph-grid { gap: 0; }
+      .graph-card { border-radius: 0; border-left: none; border-right: none; border-bottom: none; }
+      #alertbox-wrap { margin: 0; border-radius: 0; border-left: none; border-right: none; }
     }
     @media (max-width: 1099px) {
       .nav-links { gap: 14px; }
@@ -245,9 +269,6 @@
       .nav-right .status-indicator { display: none; }
       #refresh-area { display: none !important; }
       #mobile-live-ind { display: inline-flex !important; }
-    }
-    @media (max-width: 480px) {
-      #quad-ddos .quad-sub { display: none; }
     }
     .skip-link {
       position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
@@ -290,6 +311,10 @@
     #refresh-btn:active { transform: translateY(1px); }
     #refresh-icon { transform-origin: center; }
     #refresh-icon.is-spinning { animation: spin 700ms cubic-bezier(.4,.0,.2,1); }
+    .dd-delta-stack { display: flex; flex-direction: column; gap: 3px; margin-left: auto; }
+    .dd-delta-row   { display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
+    .dd-delta-tag   { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: .8px; color: var(--dimmer); }
+    .dd-delta-val   { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .spinner {
       width: 28px; height: 28px; border-radius: 50%;
       border: 2px solid var(--border); border-top-color: var(--accent);
@@ -351,7 +376,6 @@
 
 <!-- MAIN -->
 <main id="main-content">
-<div id="incident-banner"></div>
 <!-- HERO -->
 <div class="hero">
   <h1 class="hero-h1" id="hero-h1">Kobler til…</h1>
@@ -371,68 +395,93 @@
   </div>
 </div>
 
-<!-- 2×2 QUAD GRID -->
-<div class="quad-grid">
+<!-- VARSELBOKS (kun synlig ved aktive hendelser) -->
+<div id="alertbox-wrap" style="display:none" role="region" aria-label="Aktive varsler">
+  <div class="alertbox-header">
+    <span class="alertbox-dot" aria-hidden="true"></span>
+    <span class="alertbox-title">Varsler</span>
+    <span class="alertbox-sub">BGP-sikkerhet · tilgjengelighet · trafikkavvik</span>
+    <span class="alertbox-count" id="alertbox-count"></span>
+  </div>
+  <div class="alertbox-cols" id="alertbox-cols"></div>
+</div>
 
-  <!-- Top-left: DDoS-aktivitet -->
-  <div class="quad" id="quad-ddos">
-    <div class="quad-header">
-      <span class="quad-title">DDoS-aktivitet</span>
-      <a href="/ddos" class="quad-sub" style="text-decoration:none">normalisert intensitet →</a>
-      <span style="flex:1"></span>
-      <div id="ddos-delta" class="ddos-delta-stack">
-        <div class="ddos-delta-row"><span class="ddos-delta-tag l7" title="Applikasjonslag (HTTP-flood, login-floods)">L7</span><span class="ddos-delta-val" id="ddos-delta-l7">—</span></div>
-        <div class="ddos-delta-row"><span class="ddos-delta-tag l3" title="Nettverks-/transportlag (UDP-, SYN-flood, volumangrep)">L3/4</span><span class="ddos-delta-val" id="ddos-delta-l3">—</span></div>
+<!-- GRAF-SEKSJON -->
+<div class="graph-section">
+  <div class="grid-head">
+    <span class="grid-title">Aktivitet</span>
+    <span class="grid-range" aria-label="Tidsvindu: Norge, Siste 24 timer">Norge · Siste 24 timer</span>
+  </div>
+  <div class="graph-grid" id="graph-grid">
+
+    <!-- Panel 1: DDoS-aktivitet -->
+    <div class="graph-card" id="card-ddos">
+      <div class="graph-card-header">
+        <span class="graph-card-title">DDoS-aktivitet</span>
+        <a href="/ddos" class="graph-card-sub" style="text-decoration:none">normalisert intensitet →</a>
+        <div class="dd-delta-stack" id="stat-ddos">
+          <div class="dd-delta-row"><span class="dd-delta-tag">L7</span><span class="dd-delta-val" id="stat-ddos-l7">—</span></div>
+          <div class="dd-delta-row"><span class="dd-delta-tag">L3/4</span><span class="dd-delta-val" id="stat-ddos-l3">—</span></div>
+        </div>
+      </div>
+      <div class="graph-card-body" id="wrap-ddos">
+        <svg id="svg-ddos" style="display:block;width:100%;height:100%"></svg>
+      </div>
+      <div class="graph-card-legend">
+        <span class="leg-item"><span class="leg-line" style="background:var(--amber)"></span>L7 (app)</span>
+        <span class="leg-item"><span class="leg-line" style="background:var(--red)"></span>L3/4 (volum)</span>
       </div>
     </div>
-    <div id="chart-wrap" style="overflow:hidden;flex:1;min-height:0;padding:0;position:relative">
-      <svg id="ddos-chart" style="display:block;width:100%;height:100%"></svg>
-    </div>
-    <div class="chart-legend" style="padding:8px 0 0">
-      <span class="leg-item"><span class="leg-line" style="background:var(--amber)"></span>L7 (app)</span>
-      <span class="leg-item"><span class="leg-line" style="background:var(--red)"></span>L3/4 (volum)</span>
-    </div>
-  </div>
 
-  <!-- Top-right: Sikkerhet -->
-  <div class="quad" id="quad-sikkerhet">
-    <div class="quad-header">
-      <span class="quad-title">Sikkerhet</span>
-      <a href="/bgp" class="quad-sub" style="text-decoration:none">BGP-hendelser →</a>
-      <span style="flex:1"></span>
-      <span id="sec-count" class="quad-stat" style="color:var(--dimmer)">—</span>
+    <!-- Panel 2: Båndbredde -->
+    <div class="graph-card" id="card-bw">
+      <div class="graph-card-header">
+        <span class="graph-card-title">Båndbredde</span>
+        <span class="graph-card-sub">estimert nedlasting</span>
+        <span class="graph-card-stat" id="stat-bw" style="color:var(--blue)">—</span>
+      </div>
+      <div class="graph-card-body" id="wrap-bw">
+        <svg id="svg-bw" style="display:block;width:100%;height:100%"></svg>
+      </div>
+      <div class="graph-card-legend">
+        <span class="leg-item"><span class="leg-line" style="background:var(--blue)"></span>Median (p50)</span>
+        <span class="leg-item"><span class="leg-swatch" style="background:var(--blue);opacity:.25"></span>p25–p75</span>
+      </div>
     </div>
-    <div class="quad-body" id="quad-sec-body">
-      <div style="color:var(--dim);font-size:12px">Laster…</div>
-    </div>
-  </div>
 
-  <!-- Bottom-left: Tilgjengelighet -->
-  <div class="quad" id="quad-tilgjengelighet">
-    <div class="quad-header">
-      <span class="quad-title">Tilgjengelighet</span>
-      <a href="/tilgjengelighet" class="quad-sub" style="text-decoration:none">nettavbrudd →</a>
-      <span style="flex:1"></span>
-      <span id="out-count" class="quad-stat" style="color:var(--dimmer)">—</span>
+    <!-- Panel 3: HTTP-trafikk -->
+    <div class="graph-card" id="card-http">
+      <div class="graph-card-header">
+        <span class="graph-card-title">HTTP-trafikk</span>
+        <span class="graph-card-sub">forespørsler</span>
+        <span class="graph-card-stat" id="stat-http" style="color:var(--violet)">—</span>
+      </div>
+      <div class="graph-card-body" id="wrap-http">
+        <svg id="svg-http" style="display:block;width:100%;height:100%"></svg>
+      </div>
+      <div class="graph-card-legend">
+        <span class="leg-item"><span class="leg-line" style="background:var(--violet)"></span>Siste 24 t</span>
+        <span class="leg-item"><span style="display:inline-block;width:14px;border-top:1.5px dashed var(--dimmer);opacity:.7"></span>Forrige uke</span>
+      </div>
     </div>
-    <div class="quad-body" id="quad-out-body">
-      <div style="color:var(--dim);font-size:12px">Laster…</div>
-    </div>
-  </div>
 
-  <!-- Bottom-right: Trafikkavvik -->
-  <div class="quad" id="quad-trafikkavvik">
-    <div class="quad-header">
-      <span class="quad-title">Trafikkavvik</span>
-      <a href="/tilgjengelighet#trafikkavvik" class="quad-sub" style="text-decoration:none">statistiske trafikkavvik →</a>
-      <span style="flex:1"></span>
-      <span id="anom-count" class="quad-stat" style="color:var(--dimmer)">—</span>
+    <!-- Panel 4: Menneske vs. bot -->
+    <div class="graph-card" id="card-bot">
+      <div class="graph-card-header">
+        <span class="graph-card-title">Menneske vs. bot</span>
+        <span class="graph-card-sub">andel av trafikk</span>
+        <span class="graph-card-stat" id="stat-bot" style="color:var(--amber)">—</span>
+      </div>
+      <div class="graph-card-body" id="wrap-bot">
+        <svg id="svg-bot" style="display:block;width:100%;height:100%"></svg>
+      </div>
+      <div class="graph-card-legend">
+        <span class="leg-item"><span class="leg-swatch" style="background:var(--amber)"></span>Bot</span>
+        <span class="leg-item"><span class="leg-swatch" style="background:var(--green)"></span>Menneske</span>
+      </div>
     </div>
-    <div class="quad-body" id="quad-anom-body">
-      <div style="color:var(--dim);font-size:12px">Laster…</div>
-    </div>
-  </div>
 
+  </div>
 </div>
 
 <!-- SOURCE FOOTER -->
@@ -452,7 +501,7 @@ function toggleTheme() {
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('nt-theme', t);
   document.getElementById('theme-btn').setAttribute('aria-label', t === 'dark' ? 'Bytt til lys modus' : 'Bytt til mørk modus');
-  renderChart();
+  renderGraphs();
 }
 (function(){
   const t = localStorage.getItem('nt-theme') || 'dark';
@@ -534,182 +583,191 @@ function timeAgo(ts) {
 }
 function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 
-// ── Chart ──────────────────────────────────────────────────────────────────
-let chartL7 = [], chartL3 = [];
+// ── Charts ─────────────────────────────────────────────────────────────────
+let chartL7 = [], chartL3 = [], chartBw = [], chartHttp = [], chartHttpPrev = [], chartBot = [];
 
-function renderChart() {
-  const wrap = document.getElementById('chart-wrap');
-  const svg = document.getElementById('ddos-chart');
-  const W = wrap.clientWidth || 400;
-  const H = Math.max(wrap.clientHeight || 200, 150);
-  svg.setAttribute('width', W); svg.setAttribute('height', H);
-
-  if (chartL7.length < 2 && chartL3.length < 2) {
-    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="${cssVar('--dim')}">Venter på data…</text>`;
-    return;
-  }
-  const padT = 10, padB = 36, padL = 52, padR = 10;
-  const iH = H - padT - padB, iW = W - padL - padR;
-  const xa = (i, n) => padL + (i / (n - 1)) * iW;
-  const ya = v => padT + (1 - Math.max(0, Math.min(1, v))) * iH;
-  const line = d => d.map((p, i) => `${i === 0 ? 'M' : 'L'}${xa(i, d.length).toFixed(1)},${ya(p.value).toFixed(1)}`).join(' ');
-  const area = d => d.length < 2 ? '' : line(d) + ` L${xa(d.length - 1, d.length).toFixed(1)},${(padT + iH).toFixed(1)} L${xa(0, d.length).toFixed(1)},${(padT + iH).toFixed(1)} Z`;
-
-  const red = cssVar('--red'), amber = cssVar('--amber'), dim = cssVar('--dim'), txt = cssVar('--text');
-  const src = chartL7.length >= chartL3.length ? chartL7 : chartL3;
-  const n = src.length;
-
-  const yVals = [1, 0.75, 0.5, 0.25, 0];
-  const yGrid = yVals.map(v => {
-    const y = ya(v).toFixed(1);
-    const dash = v > 0 ? ' stroke-dasharray="3 4"' : '';
-    return `<line x1="${padL}" y1="${y}" x2="${padL + iW}" y2="${y}" stroke="${dim}" stroke-opacity=".2" stroke-width="1"${dash}/><text x="${padL - 6}" y="${(parseFloat(y) + 4).toFixed(1)}" text-anchor="end" font-size="11.5" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${v.toFixed(2)}</text>`;
-  }).join('');
-
-  const yCenterNeg = -(padT + iH / 2);
-  const yTitle = `<text transform="rotate(-90)" x="${yCenterNeg.toFixed(0)}" y="12" text-anchor="middle" font-size="10.5" font-weight="600" font-family="JetBrains Mono,monospace" letter-spacing="1.4" fill="${dim}">INTENSITET (0–1)</text>`;
-
+function _xTicks(padL, iW, padT, iH, src) {
+  if (!src || src.length < 2) return '';
+  const dim = cssVar('--dim'), txt = cssVar('--text');
   const firstTs = new Date(src[0].timestamp).getTime();
-  const lastTs  = new Date(src[n - 1].timestamp).getTime();
+  const lastTs  = new Date(src[src.length - 1].timestamp).getTime();
   const tSpan   = lastTs - firstTs || 1;
   const xByTime = ts => padL + ((ts - firstTs) / tSpan) * iW;
   const t0 = new Date(firstTs); t0.setMinutes(0, 0, 0, 0);
   const hRem = t0.getHours() % 3; if (hRem !== 0) t0.setHours(t0.getHours() + (3 - hRem));
-  const xTicks = [];
+  const ticks = [];
   for (let t = t0.getTime(); t <= lastTs; t += 3 * 3600_000) {
     if (t < firstTs) continue;
     const hr = String(new Date(t).getHours()).padStart(2, '0');
-    xTicks.push(`<text x="${xByTime(t).toFixed(1)}" y="${(padT + iH + 17).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${hr}</text>`);
+    ticks.push(`<text x="${xByTime(t).toFixed(1)}" y="${(padT + iH + 17).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${hr}</text>`);
   }
-  svg.innerHTML = `
+  return ticks.join('');
+}
+
+function drawLine(svgEl, wrap, opts) {
+  if (!svgEl || !wrap) return;
+  const W = wrap.clientWidth || 400;
+  const H = Math.max(wrap.clientHeight || 180, 120);
+  svgEl.setAttribute('width', W); svgEl.setAttribute('height', H);
+
+  const vals = opts.values || [];
+  if (vals.length < 2) {
+    svgEl.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="${cssVar('--dim')}">Venter på data…</text>`;
+    return;
+  }
+
+  const padT = 8, padB = 32, padL = 48, padR = 10;
+  const iH = H - padT - padB, iW = W - padL - padR;
+  const dim = cssVar('--dim'), txt = cssVar('--text');
+
+  // Y-range: auto-scale unless overridden
+  const yTicks = opts.yTicks || [0, 0.25, 0.5, 0.75, 1];
+  const yMin = yTicks[0], yMax = yTicks[yTicks.length - 1];
+  const yRange = yMax - yMin || 1;
+  const ya = v => padT + (1 - (Math.max(yMin, Math.min(yMax, v)) - yMin) / yRange) * iH;
+
+  // Index-based x (all series share same length assumption)
+  const n = vals.length;
+  const xa = i => padL + (i / (n - 1)) * iW;
+  const linePath = d => d.map((p, i) => `${i===0?'M':'L'}${xa(i).toFixed(1)},${ya(p.value).toFixed(1)}`).join(' ');
+  const areaPath = d => linePath(d) + ` L${xa(n-1).toFixed(1)},${(padT+iH).toFixed(1)} L${xa(0).toFixed(1)},${(padT+iH).toFixed(1)} Z`;
+
+  const color  = opts.color  || cssVar('--amber');
+  const color2 = opts.color2 || cssVar('--red');
+  const yFmt   = opts.yFmt   || (v => v.toFixed(2));
+
+  // Y-grid
+  const yGrid = yTicks.map(v => {
+    const y = ya(v).toFixed(1);
+    const dash = v > yMin ? ' stroke-dasharray="3 4"' : '';
+    return `<line x1="${padL}" y1="${y}" x2="${padL+iW}" y2="${y}" stroke="${dim}" stroke-opacity=".18" stroke-width="1"${dash}/>`
+         + `<text x="${padL-5}" y="${(parseFloat(y)+4).toFixed(1)}" text-anchor="end" font-size="10.5" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${yFmt(v)}</text>`;
+  }).join('');
+
+  // Band (p25–p75)
+  let bandSvg = '';
+  if (opts.low && opts.high && opts.low.length >= 2 && opts.high.length >= 2) {
+    const lo = opts.low, hi = opts.high;
+    const bandPath = `M${xa(0).toFixed(1)},${ya(hi[0].value).toFixed(1)} `
+      + hi.map((p, i) => `L${xa(i).toFixed(1)},${ya(p.value).toFixed(1)}`).slice(1).join(' ')
+      + ` L${xa(lo.length-1).toFixed(1)},${ya(lo[lo.length-1].value).toFixed(1)} `
+      + lo.map((p, i) => `L${xa(lo.length-1-i).toFixed(1)},${ya(p.value).toFixed(1)}`).slice(1).join(' ')
+      + ' Z';
+    bandSvg = `<path d="${bandPath}" fill="${color}" fill-opacity=".15"/>`;
+  }
+
+  // Area + line for primary series
+  const gradId = `gl-${svgEl.id}`;
+  const gradId2 = `gl2-${svgEl.id}`;
+  const vals2 = opts.values2;
+
+  svgEl.innerHTML = `
     <defs>
-      <linearGradient id="gl3" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="${red}" stop-opacity=".35"/>
-        <stop offset="100%" stop-color="${red}" stop-opacity="0"/>
+      <linearGradient id="${gradId}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity=".28"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
       </linearGradient>
-      <linearGradient id="gl7" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="${amber}" stop-opacity=".3"/>
-        <stop offset="100%" stop-color="${amber}" stop-opacity="0"/>
-      </linearGradient>
+      ${vals2 && vals2.length >= 2 ? `<linearGradient id="${gradId2}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="${color2}" stop-opacity=".28"/>
+        <stop offset="100%" stop-color="${color2}" stop-opacity="0"/>
+      </linearGradient>` : ''}
     </defs>
-    ${chartL3.length >= 2 ? `<path d="${area(chartL3)}" fill="url(#gl3)"/><path d="${line(chartL3)}" fill="none" stroke="${red}" stroke-width="1.6"/>` : ''}
-    ${chartL7.length >= 2 ? `<path d="${area(chartL7)}" fill="url(#gl7)"/><path d="${line(chartL7)}" fill="none" stroke="${amber}" stroke-width="1.4"/>` : ''}
+    ${bandSvg}
+    ${vals2 && vals2.length >= 2 ? `<path d="${areaPath(vals2)}" fill="url(#${gradId2})"/><path d="${linePath(vals2)}" fill="none" stroke="${color2}" stroke-width="1.5"/>` : ''}
+    <path d="${areaPath(vals)}" fill="url(#${gradId})"/>
+    <path d="${linePath(vals)}" fill="none" stroke="${color}" stroke-width="1.6"/>
+    ${opts.prev && opts.prev.length >= 2 ? `<path d="${linePath(opts.prev)}" fill="none" stroke="${opts.prevColor || cssVar('--dimmer')}" stroke-width="1.2" stroke-dasharray="4 3" opacity=".55"/>` : ''}
     ${yGrid}
-    ${yTitle}
-    ${xTicks.join('')}
+    ${_xTicks(padL, iW, padT, iH, vals)}
   `;
 }
 
-const ro = new ResizeObserver(renderChart);
-ro.observe(document.getElementById('chart-wrap'));
+function drawStacked(svgEl, wrap) {
+  if (!svgEl || !wrap) return;
+  const W = wrap.clientWidth || 400;
+  const H = Math.max(wrap.clientHeight || 180, 120);
+  svgEl.setAttribute('width', W); svgEl.setAttribute('height', H);
+
+  const bot = chartBot;
+  if (bot.length < 2) {
+    svgEl.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="${cssVar('--dim')}">Venter på data…</text>`;
+    return;
+  }
+
+  const padT = 8, padB = 32, padL = 48, padR = 10;
+  const iH = H - padT - padB, iW = W - padL - padR;
+  const amber = cssVar('--amber'), green = cssVar('--green'), dim = cssVar('--dim'), txt = cssVar('--text');
+  const n = bot.length;
+  const xa = i => padL + (i / (n - 1)) * iW;
+  const ya = v => padT + (1 - v / 100) * iH;
+
+  const botLinePts = bot.map((p, i) => `${i===0?'M':'L'}${xa(i).toFixed(1)},${ya(p.value).toFixed(1)}`).join(' ');
+  const botArea = botLinePts + ` L${xa(n-1).toFixed(1)},${(padT+iH).toFixed(1)} L${xa(0).toFixed(1)},${(padT+iH).toFixed(1)} Z`;
+  const humanArea = `M${xa(0).toFixed(1)},${ya(bot[0].value).toFixed(1)} ` + botLinePts.slice(1)
+    + ` L${xa(n-1).toFixed(1)},${ya(100).toFixed(1)} L${xa(0).toFixed(1)},${ya(100).toFixed(1)} Z`;
+
+  const yTicks = [0, 25, 50, 75, 100];
+  const yGrid = yTicks.map(v => {
+    const y = ya(v).toFixed(1);
+    const dash = v > 0 ? ' stroke-dasharray="3 4"' : '';
+    return `<line x1="${padL}" y1="${y}" x2="${padL+iW}" y2="${y}" stroke="${dim}" stroke-opacity=".18" stroke-width="1"${dash}/>`
+         + `<text x="${padL-5}" y="${(parseFloat(y)+4).toFixed(1)}" text-anchor="end" font-size="10.5" font-weight="500" font-family="JetBrains Mono,monospace" fill="${txt}">${v}%</text>`;
+  }).join('');
+
+  const lastX = xa(n-1).toFixed(1), lastY = ya(bot[n-1].value).toFixed(1);
+
+  svgEl.innerHTML = `
+    <path d="${humanArea}" fill="${green}" fill-opacity=".20"/>
+    <path d="${botArea}" fill="${amber}" fill-opacity=".30"/>
+    <path d="${botLinePts}" fill="none" stroke="${amber}" stroke-width="2"/>
+    ${yGrid}
+    ${_xTicks(padL, iW, padT, iH, bot)}
+    <circle cx="${lastX}" cy="${lastY}" r="3.2" fill="${amber}"/>
+    <circle cx="${lastX}" cy="${lastY}" r="6" fill="none" stroke="${amber}" stroke-opacity=".35" stroke-width="1.2"/>
+  `;
+}
+
+function renderGraphs() {
+  const w1 = document.getElementById('wrap-ddos');
+  if (w1) drawLine(document.getElementById('svg-ddos'), w1, {
+    values: chartL7, color: cssVar('--amber'),
+    values2: chartL3, color2: cssVar('--red'),
+  });
+
+  const w2 = document.getElementById('wrap-bw');
+  if (w2 && chartBw.length >= 2) {
+    const bwMedian = chartBw.map(p => ({timestamp: p.timestamp, value: p.p50}));
+    const bwLow    = chartBw.map(p => ({timestamp: p.timestamp, value: p.p25}));
+    const bwHigh   = chartBw.map(p => ({timestamp: p.timestamp, value: p.p75}));
+    const allBw = [...bwLow, ...bwHigh, ...bwMedian].map(p => p.value);
+    const bwMax = Math.max(...allBw);
+    const bwStep = bwMax > 100 ? 50 : bwMax > 50 ? 25 : bwMax > 20 ? 10 : 5;
+    const bwTopTick = Math.ceil(bwMax / bwStep) * bwStep;
+    const bwTicks = [0, bwTopTick * 0.25, bwTopTick * 0.5, bwTopTick * 0.75, bwTopTick].map(v => Math.round(v));
+    drawLine(document.getElementById('svg-bw'), w2, {
+      values: bwMedian, color: cssVar('--blue'),
+      low: bwLow, high: bwHigh,
+      yTicks: bwTicks,
+      yFmt: v => `${v}`,
+    });
+  } else if (w2) {
+    drawLine(document.getElementById('svg-bw'), w2, {values: [], color: cssVar('--blue')});
+  }
+
+  const w3 = document.getElementById('wrap-http');
+  if (w3) drawLine(document.getElementById('svg-http'), w3, {
+    values: chartHttp, color: cssVar('--violet'),
+    prev: chartHttpPrev, prevColor: cssVar('--dimmer'),
+  });
+
+  const w4 = document.getElementById('wrap-bot');
+  if (w4) drawStacked(document.getElementById('svg-bot'), w4);
+}
+
+const ro = new ResizeObserver(renderGraphs);
+ro.observe(document.getElementById('graph-grid'));
 
 // ── Render helpers ─────────────────────────────────────────────────────────
-function emptyQuad(tagline) {
-  return `
-    <div style="background:rgba(79,213,138,.05);border:1px solid rgba(79,213,138,.12);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:10px;flex:1">
-      <div style="display:flex;align-items:center;gap:7px">
-        <span style="width:7px;height:7px;border-radius:3.5px;background:var(--green);flex-shrink:0;animation:c-pulse 2.5s ease-in-out infinite"></span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.6px;color:var(--green)">ALT OK</span>
-      </div>
-      <div style="font-size:13px;color:var(--dim);line-height:1.5">${tagline}</div>
-    </div>`;
-}
-
-function moreLink(count, href) {
-  return `<a href="${href}" style="font-size:11.5px;color:var(--dim);display:block;text-align:center;padding:6px 0;border:1px dashed var(--border);border-radius:6px">+ ${count} flere</a>`;
-}
-
-function renderHendelser(alerts, outages, anomalies, noAsns) {
-  // Sikkerhet
-  const secCountEl = document.getElementById('sec-count');
-  if (secCountEl) { secCountEl.textContent = alerts.length; secCountEl.style.color = alerts.length > 0 ? 'var(--red)' : 'var(--dimmer)'; }
-  const secBody = document.getElementById('quad-sec-body');
-  if (secBody) {
-    if (!alerts.length) {
-      secBody.innerHTML = emptyQuad('Ingen BGP-kapringer eller rutelekkasjer flagget siste 24 t.');
-    } else {
-      const items = alerts.slice(0, 3).map(a => {
-        const isH = a.kind === 'hijack';
-        const c = isH ? 'var(--red)' : 'var(--amber)';
-        const cBg = isH ? 'rgba(255,107,91,.12)' : 'rgba(245,185,66,.12)';
-        const hijName = isH ? (noAsns[a.hijacker_asn] || `AS${a.hijacker_asn}`) : (noAsns[a.leak_asn] || `AS${a.leak_asn}`);
-        const vicName = isH ? (noAsns[a.victim_asn] || `AS${a.victim_asn}`) : (noAsns[a.origin_asn] || `AS${a.origin_asn}`);
-        return `<div class="col-item-card">
-          <div style="position:absolute;top:0;bottom:0;left:0;width:2px;background:${c}"></div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:${c};padding:2px 6px;background:${cBg};border-radius:3px">${isH ? '⚠ HIJACK' : '↯ RUTELEKK'}</span>
-            <span style="flex:1"></span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)">${timeAgo(a.detected_at)}</span>
-          </div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500;word-break:break-all">${a.prefix}</div>
-          <div style="font-size:11.5px;color:var(--dim);line-height:1.4">${hijName} ${isH ? '→' : '↯'} ${vicName}</div>
-        </div>`;
-      }).join('');
-      const more = Math.max(0, alerts.length - 3);
-      secBody.innerHTML = items + (more > 0 ? moreLink(more, '/bgp') : '');
-    }
-  }
-
-  // Tilgjengelighet
-  const outCountEl = document.getElementById('out-count');
-  if (outCountEl) { outCountEl.textContent = outages.length; outCountEl.style.color = outages.length > 0 ? 'var(--amber)' : 'var(--dimmer)'; }
-  const outBody = document.getElementById('quad-out-body');
-  if (outBody) {
-    if (!outages.length) {
-      outBody.innerHTML = emptyQuad('Ingen pågående nettavbrudd siste 24 t.');
-    } else {
-      const items = outages.slice(0, 3).map(o => {
-        const name = o.asn_name || (o.asn ? `AS${o.asn}` : '—');
-        const since = o.start_time ? timeAgo(o.start_time) : '—';
-        const typeMap = { OUTAGE:'NETTAVBRUDD', DATACENTER:'DATASENTER', DNS:'DNS', BGP:'BGP' };
-        const typeLabel = typeMap[(o.type||'').toUpperCase()] || o.type || 'AVBRUDD';
-        return `<div class="col-item-card">
-          <div style="position:absolute;top:0;bottom:0;left:0;width:2px;background:var(--amber)"></div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:var(--amber);padding:2px 6px;background:rgba(245,185,66,.12);border-radius:3px">${typeLabel}</span>
-            <span style="flex:1"></span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)">${since}</span>
-          </div>
-          <div style="font-size:13px;font-weight:500">${name}</div>
-          ${o.asn ? `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">AS${o.asn}${o.location ? ' · ' + o.location : ''}</div>` : ''}
-        </div>`;
-      }).join('');
-      const more = Math.max(0, outages.length - 3);
-      outBody.innerHTML = items + (more > 0 ? moreLink(more, '/tilgjengelighet') : '');
-    }
-  }
-
-  // Trafikkavvik
-  const anomCountEl = document.getElementById('anom-count');
-  if (anomCountEl) { anomCountEl.textContent = anomalies.length; anomCountEl.style.color = anomalies.length > 0 ? 'var(--blue)' : 'var(--dimmer)'; }
-  const anomBody = document.getElementById('quad-anom-body');
-  if (anomBody) {
-    if (!anomalies.length) {
-      anomBody.innerHTML = emptyQuad('Ingen statistiske trafikkavvik siste 24 t.');
-    } else {
-      const items = anomalies.slice(0, 3).map(a => {
-        const name = a.asn_name || (a.asn ? `AS${a.asn}` : '—');
-        const since = a.start_time ? timeAgo(a.start_time) : '—';
-        const isDown = (a.direction || '') === 'down';
-        const c = isDown ? 'var(--amber)' : 'var(--blue)';
-        const cBg = isDown ? 'rgba(245,185,66,.12)' : 'rgba(124,182,255,.12)';
-        return `<div class="col-item-card">
-          <div style="position:absolute;top:0;bottom:0;left:0;width:2px;background:${c}"></div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:${c};padding:2px 6px;background:${cBg};border-radius:3px">${isDown ? '↓' : '↑'} TRAFIKKAVVIK</span>
-            <span style="flex:1"></span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)">${since}</span>
-          </div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500">AS${a.asn} · ${name}</div>
-          ${a.score != null ? `<div style="font-size:11.5px;color:var(--dim)">Score: ${a.score.toFixed(1)}</div>` : ''}
-        </div>`;
-      }).join('');
-      const more = Math.max(0, anomalies.length - 3);
-      anomBody.innerHTML = items + (more > 0 ? moreLink(more, '/tilgjengelighet#trafikkavvik') : '');
-    }
-  }
-}
-
 function renderBars(list, elId, type) {
   const el = document.getElementById(elId);
   if (!list || !list.length) { el.innerHTML = '<div style="color:var(--dim);font-size:12px;padding:12px 0">Ingen data</div>'; return; }
@@ -723,16 +781,113 @@ function renderBars(list, elId, type) {
     </div>`).join('');
 }
 
-// ── Incident banner ────────────────────────────────────────────────────────
-function renderIncidentBanner(outages) {
-  const el = document.getElementById('incident-banner');
-  if (!outages || outages.length === 0) { el.innerHTML = ''; return; }
-  const n = outages.length;
-  el.innerHTML = `
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round"><circle cx="7" cy="7" r="6"/><line x1="7" y1="4.5" x2="7" y2="7.5"/><circle cx="7" cy="10" r=".6" fill="var(--red)" stroke="none"/></svg>
-    <span style="color:var(--text)">${n} aktivt nettavbrudd${n > 1 ? ' registrert' : ' registrert'}</span>
-    <a href="/tilgjengelighet" style="color:var(--red);font-weight:600;margin-left:auto;font-size:12px">Se Tilgjengelighet →</a>
-  `;
+// ── Varselboks ─────────────────────────────────────────────────────────────
+function renderAlertbox(alerts, outages, anomalies) {
+  const wrap = document.getElementById('alertbox-wrap');
+  if (!wrap) return;
+  const n = (alerts || []).length + (outages || []).length + (anomalies || []).length;
+  if (n === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  const countEl = document.getElementById('alertbox-count');
+  if (countEl) countEl.textContent = `${n} aktive · siste 24 t`;
+
+  const cols = [];
+
+  if ((alerts || []).length > 0) {
+    const items = alerts.slice(0, 2).map(a => {
+      const isH = a.kind === 'hijack';
+      const c = isH ? 'var(--red)' : 'var(--amber)';
+      const cBg = isH ? 'rgba(255,107,91,.12)' : 'rgba(245,185,66,.12)';
+      const hijName = isH ? (noAsns[a.hijacker_asn] || `AS${a.hijacker_asn}`) : (noAsns[a.leak_asn] || `AS${a.leak_asn}`);
+      const vicName = isH ? (noAsns[a.victim_asn] || `AS${a.victim_asn}`) : (noAsns[a.origin_asn] || `AS${a.origin_asn}`);
+      return `<div class="col-item-card">
+        <div style="position:absolute;top:0;bottom:0;left:0;width:2px;background:${c}"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:${c};padding:2px 6px;background:${cBg};border-radius:3px">${isH ? '⚠ HIJACK' : '↯ RUTELEKK'}</span>
+          <span style="flex:1"></span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)">${timeAgo(a.detected_at)}</span>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500;word-break:break-all">${a.prefix}</div>
+        <div style="font-size:11.5px;color:var(--dim);line-height:1.4">${hijName} ${isH ? '→' : '↯'} ${vicName}</div>
+      </div>`;
+    }).join('');
+    const more = Math.max(0, alerts.length - 2);
+    cols.push(`<div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <span style="font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--text)">BGP-sikkerhet</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;color:var(--red);background:rgba(255,107,91,.12);border:1px solid rgba(255,107,91,.3);padding:1px 7px;border-radius:999px">${alerts.length}</span>
+        <a href="/bgp" style="font-size:11px;color:var(--dim);text-decoration:none;margin-left:auto">Mer →</a>
+      </div>
+      ${items}
+      ${more > 0 ? `<a href="/bgp" style="font-size:11px;color:var(--dim);text-align:center;padding:6px;border:1px dashed var(--border);border-radius:6px;text-decoration:none">+ ${more} flere</a>` : ''}
+    </div>`);
+  }
+
+  if ((outages || []).length > 0) {
+    const items = outages.slice(0, 2).map(o => {
+      const name = o.asn_name || (o.asn ? `AS${o.asn}` : '—');
+      const since = o.start_time ? timeAgo(o.start_time) : '—';
+      const typeMap = { OUTAGE:'NETTAVBRUDD', DATACENTER:'DATASENTER', DNS:'DNS', BGP:'BGP' };
+      const typeLabel = typeMap[(o.type||'').toUpperCase()] || o.type || 'AVBRUDD';
+      return `<div class="col-item-card">
+        <div style="position:absolute;top:0;bottom:0;left:0;width:2px;background:var(--amber)"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:var(--amber);padding:2px 6px;background:rgba(245,185,66,.12);border-radius:3px">${typeLabel}</span>
+          <span style="flex:1"></span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)">${since}</span>
+        </div>
+        <div style="font-size:13px;font-weight:500">${name}</div>
+        ${o.asn ? `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">AS${o.asn}${o.location ? ' · ' + o.location : ''}</div>` : ''}
+      </div>`;
+    }).join('');
+    const more = Math.max(0, outages.length - 2);
+    cols.push(`<div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <span style="font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--text)">Tilgjengelighet</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;color:var(--amber);background:rgba(245,185,66,.12);border:1px solid rgba(245,185,66,.3);padding:1px 7px;border-radius:999px">${outages.length}</span>
+        <a href="/tilgjengelighet" style="font-size:11px;color:var(--dim);text-decoration:none;margin-left:auto">Mer →</a>
+      </div>
+      ${items}
+      ${more > 0 ? `<a href="/tilgjengelighet" style="font-size:11px;color:var(--dim);text-align:center;padding:6px;border:1px dashed var(--border);border-radius:6px;text-decoration:none">+ ${more} flere</a>` : ''}
+    </div>`);
+  }
+
+  if ((anomalies || []).length > 0) {
+    const items = anomalies.slice(0, 2).map(a => {
+      const name = a.asn_name || (a.asn ? `AS${a.asn}` : '—');
+      const since = a.start_time ? timeAgo(a.start_time) : '—';
+      const isDown = (a.direction || '') === 'down';
+      const c = isDown ? 'var(--amber)' : 'var(--blue)';
+      const cBg = isDown ? 'rgba(245,185,66,.12)' : 'rgba(124,182,255,.12)';
+      return `<div class="col-item-card">
+        <div style="position:absolute;top:0;bottom:0;left:0;width:2px;background:${c}"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:${c};padding:2px 6px;background:${cBg};border-radius:3px">${isDown ? '↓' : '↑'} TRAFIKKAVVIK</span>
+          <span style="flex:1"></span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)">${since}</span>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500">AS${a.asn} · ${name}</div>
+        ${a.score != null ? `<div style="font-size:11.5px;color:var(--dim)">Score: ${a.score.toFixed(1)}</div>` : ''}
+      </div>`;
+    }).join('');
+    const more = Math.max(0, anomalies.length - 2);
+    cols.push(`<div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+        <span style="font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--text)">Trafikkavvik</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;color:var(--blue);background:rgba(124,182,255,.12);border:1px solid rgba(124,182,255,.3);padding:1px 7px;border-radius:999px">${anomalies.length}</span>
+        <a href="/tilgjengelighet#trafikkavvik" style="font-size:11px;color:var(--dim);text-decoration:none;margin-left:auto">Mer →</a>
+      </div>
+      ${items}
+      ${more > 0 ? `<a href="/tilgjengelighet#trafikkavvik" style="font-size:11px;color:var(--dim);text-align:center;padding:6px;border:1px dashed var(--border);border-radius:6px;text-decoration:none">+ ${more} flere</a>` : ''}
+    </div>`);
+  }
+
+  const colsEl = document.getElementById('alertbox-cols');
+  if (colsEl) {
+    colsEl.style.gridTemplateColumns = `repeat(${cols.length}, 1fr)`;
+    colsEl.innerHTML = cols.join('');
+  }
 }
 
 // ── Timeline strip ─────────────────────────────────────────────────────────
@@ -793,6 +948,24 @@ function updateMobileLive() {
 let noAsns = {};
 let lastAlerts = [];
 
+function setText(id, v) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = v;
+}
+
+function pctDelta(current, base) {
+  if (!base || base === 0) return null;
+  return Math.round((current / base - 1) * 100);
+}
+function fmtDelta(d) {
+  if (d === null) return '—';
+  return (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d) + '%';
+}
+function colDelta(d) {
+  if (d === null) return 'var(--dimmer)';
+  return d > 0 ? 'var(--red)' : 'var(--green)';
+}
+
 function applySnapshot(data) {
   const overlay = document.getElementById('loading-overlay');
   if (overlay) {
@@ -815,8 +988,6 @@ function applySnapshot(data) {
   const alerts = [...hijacks, ...leaks];
   lastAlerts = alerts;
 
-
-
   // DDoS delta — per-lag values + hero
   const l7Current = radar.current_attack_intensity || 0;
   const l7Base = radar.attack_baseline_24h || 0;
@@ -827,53 +998,66 @@ function applySnapshot(data) {
   const combinedBase = l7Base + l3Base;
   const delta = combinedBase > 0 ? Math.round((combinedCur / combinedBase - 1) * 100) : null;
 
-  const fmt = (cur, base) => {
-    if (base <= 0) return { txt: '—', color: 'var(--dimmer)' };
-    const d = Math.round((cur / base - 1) * 100);
-    return { txt: `${d > 0 ? '+' : ''}${d}%`, color: d > 0 ? 'var(--red)' : 'var(--green)' };
-  };
-  const l7f = fmt(l7Current, l7Base);
-  const l3f = fmt(l3Current, l3Base);
-  const l7El = document.getElementById('ddos-delta-l7');
-  const l3El = document.getElementById('ddos-delta-l3');
-  l7El.textContent = l7f.txt; l7El.style.color = l7f.color;
-  l3El.textContent = l3f.txt; l3El.style.color = l3f.color;
+  // DDoS-stat — L7 og L3/4 per serie
+  const l7d = pctDelta(l7Current, l7Base);
+  const l3d = pctDelta(l3Current, l3Base);
+  const l7el = document.getElementById('stat-ddos-l7');
+  const l3el = document.getElementById('stat-ddos-l3');
+  if (l7el) { l7el.textContent = fmtDelta(l7d); l7el.style.color = colDelta(l7d); }
+  if (l3el) { l3el.textContent = fmtDelta(l3d); l3el.style.color = colDelta(l3d); }
+
+  const outages = radar.active_outages || [];
+  const anomalies = radar.traffic_anomaly_events || [];
+  const totalAlerts = alerts.length + outages.length + anomalies.length;
 
   const heroEl = document.getElementById('hero-h1');
   if (delta === null) {
-    const noDataStr = alerts.length > 0
-      ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> ${alerts.length === 1 ? 'sikkerhetshendelse' : 'sikkerhetshendelser'} detektert siste 24 t.`
-      : 'Ingen aktive sikkerhetsvarsler.';
-    heroEl.innerHTML = `DDoS-aktivitet: ingen data ennå. ${noDataStr}`;
+    heroEl.innerHTML = totalAlerts > 0
+      ? `DDoS-aktivitet: ingen data ennå. <span class="acc" style="color:var(--red)">${totalAlerts}</span> ${totalAlerts === 1 ? 'aktivt varsel' : 'aktive varsler'} siste 24 t.`
+      : 'DDoS-aktivitet: ingen data ennå. Ingen aktive varsler.';
   } else {
     const absDelta = Math.abs(delta);
     if (delta > 0) {
       const ddosColor = delta <= 20 ? 'var(--amber)' : 'var(--red)';
-      const countStr = alerts.length > 0
-        ? `<span class="acc" style="color:var(--red)">${alerts.length}</span> ${alerts.length === 1 ? 'sikkerhetshendelse' : 'sikkerhetshendelser'} detektert siste 24 t.`
-        : 'Ingen sikkerhetshendelser detektert siste 24 t.';
-      heroEl.innerHTML = `DDoS-aktivitet ligger <span class="acc" style="color:${ddosColor}">${absDelta}%</span> over snittet. ${countStr}`;
+      heroEl.innerHTML = totalAlerts > 0
+        ? `DDoS-aktivitet ligger <span class="acc" style="color:${ddosColor}">${absDelta}%</span> over snittet. <span class="acc" style="color:var(--red)">${totalAlerts}</span> ${totalAlerts === 1 ? 'aktivt varsel' : 'aktive varsler'} siste 24 t.`
+        : `DDoS-aktivitet ligger <span class="acc" style="color:${ddosColor}">${absDelta}%</span> over snittet. Ingen aktive varsler.`;
     } else {
-      heroEl.innerHTML = `DDoS-aktivitet er <span class="acc" style="color:var(--green)">${absDelta}%</span> under snittet. Ingen aktive sikkerhetsvarsler.`;
+      heroEl.innerHTML = totalAlerts > 0
+        ? `DDoS-aktivitet er <span class="acc" style="color:var(--green)">${absDelta}%</span> under snittet. <span class="acc" style="color:var(--red)">${totalAlerts}</span> ${totalAlerts === 1 ? 'aktivt varsel' : 'aktive varsler'} siste 24 t.`
+        : `DDoS-aktivitet er <span class="acc" style="color:var(--green)">${absDelta}%</span> under snittet. Ingen aktive varsler.`;
     }
   }
-
-  // Charts — normaliser mot kombinert max hvis verdier > 1.0
+  // DDoS chart — normaliser mot kombinert max hvis > 1.0
   const raw7 = radar.attack_timeseries || [];
   const raw3 = radar.layer3_timeseries || [];
   const allVals = [...raw7.map(p => p.value), ...raw3.map(p => p.value)];
   const maxVal = allVals.length ? Math.max(...allVals) : 1;
   chartL7 = maxVal > 1 ? raw7.map(p => ({...p, value: p.value / maxVal})) : raw7;
   chartL3 = maxVal > 1 ? raw3.map(p => ({...p, value: p.value / maxVal})) : raw3;
-  renderChart();
 
-  // Outages + anomalies
-  const outages = radar.active_outages || [];
-  const anomalies = radar.traffic_anomaly_events || [];
+  // Nye graf-data
+  chartBw       = radar.bandwidth_timeseries || [];
+  chartHttp     = radar.http_timeseries || [];
+  chartHttpPrev = radar.http_timeseries_prev || [];
+  chartBot      = radar.bot_timeseries || [];
 
-  renderIncidentBanner(outages);
-  renderTimelineStrip(radar);
-  renderHendelser(alerts, outages, anomalies, noAsns);
+  if (chartBw.length)   setText('stat-bw',   `${chartBw.at(-1).p50.toFixed(0)} Mbps`);
+  if (chartBot.length)  setText('stat-bot',  `${chartBot.at(-1).value.toFixed(0)} % bot`);
+  if (chartHttp.length >= 2) {
+    const httpPrevAvg = chartHttpPrev.length
+      ? chartHttpPrev.reduce((s, p) => s + p.value, 0) / chartHttpPrev.length
+      : chartHttp.reduce((s, p) => s + p.value, 0) / chartHttp.length;
+    const httpLast = chartHttp.at(-1).value;
+    const httpDelta = httpPrevAvg > 0 ? Math.round((httpLast / httpPrevAvg - 1) * 100) : null;
+    if (httpDelta !== null) {
+      const httpStat = document.getElementById('stat-http');
+      if (httpStat) { httpStat.textContent = fmtDelta(httpDelta); httpStat.style.color = 'var(--dim)'; }
+    }
+  }
+
+  renderGraphs();
+  renderAlertbox(alerts, outages, anomalies);
 
   // Cloudflare indicator
   if (radar.last_updated) { document.getElementById('cf-dot').classList.add('live'); updateMobileLive(); }
@@ -891,9 +1075,37 @@ function connect() {
     if (msg.type === 'state_snapshot') { applySnapshot(msg.data); saveSnapshot(msg.data); markUpdated(); }
     else if (msg.type === 'radar_update') {
       const r = msg.data;
-      renderIncidentBanner(r.active_outages || []);
-      renderTimelineStrip(r);
-      renderHendelser(lastAlerts, r.active_outages || [], r.traffic_anomaly_events || [], noAsns);
+      chartBw       = r.bandwidth_timeseries || [];
+      chartHttp     = r.http_timeseries || [];
+      chartHttpPrev = r.http_timeseries_prev || [];
+      chartBot      = r.bot_timeseries || [];
+      if (chartBw.length)  setText('stat-bw',  `${chartBw.at(-1).p50.toFixed(0)} Mbps`);
+      if (chartBot.length) setText('stat-bot', `${chartBot.at(-1).value.toFixed(0)} % bot`);
+      // DDoS delta per serie
+      const ru7c = r.current_attack_intensity || 0;
+      const ru7b = r.attack_baseline_24h || 0;
+      const ru3v = (r.layer3_timeseries || []).map(p => p.value);
+      const ru3c = ru3v.length ? ru3v[ru3v.length - 1] : 0;
+      const ru3b = ru3v.length ? ru3v.reduce((s, v) => s + v, 0) / ru3v.length : 0;
+      const rul7el = document.getElementById('stat-ddos-l7');
+      const rul3el = document.getElementById('stat-ddos-l3');
+      const rul7d = pctDelta(ru7c, ru7b), rul3d = pctDelta(ru3c, ru3b);
+      if (rul7el) { rul7el.textContent = fmtDelta(rul7d); rul7el.style.color = colDelta(rul7d); }
+      if (rul3el) { rul3el.textContent = fmtDelta(rul3d); rul3el.style.color = colDelta(rul3d); }
+      // HTTP delta
+      if (chartHttp.length >= 2) {
+        const rpAvg = chartHttpPrev.length
+          ? chartHttpPrev.reduce((s, p) => s + p.value, 0) / chartHttpPrev.length
+          : chartHttp.reduce((s, p) => s + p.value, 0) / chartHttp.length;
+        const rpLast = chartHttp.at(-1).value;
+        const rpDelta = rpAvg > 0 ? Math.round((rpLast / rpAvg - 1) * 100) : null;
+        if (rpDelta !== null) {
+          const httpStat = document.getElementById('stat-http');
+          if (httpStat) { httpStat.textContent = fmtDelta(rpDelta); httpStat.style.color = 'var(--dim)'; }
+        }
+      }
+      renderGraphs();
+      renderAlertbox(lastAlerts, r.active_outages || [], r.traffic_anomaly_events || []);
       markUpdated();
     }
   };

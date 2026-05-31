@@ -306,6 +306,7 @@
       <a class="anchor-link" href="#s2">De fire sidene</a>
       <a class="anchor-link" href="#s3">BGP-hendelser</a>
       <a class="anchor-link" href="#s4">DDoS-angrep</a>
+      <a class="anchor-link" href="#s4b">Øvrige grafer</a>
       <a class="anchor-link" href="#s5">Nettavbrudd og trafikkavvik</a>
       <a class="anchor-link" href="#s6">Datakilder</a>
     </div>
@@ -355,7 +356,7 @@
           <div class="event-header">
             <span class="event-title">Dashboard</span>
           </div>
-          <div class="event-body">Nasjonal status på én skjerm. Kombinert DDoS-intensitet (L7 + L3/4) som hovedmetrikk, og fire likeverdige kvadranter for DDoS-aktivitet, Sikkerhet, Tilgjengelighet og Trafikkavvik.</div>
+          <div class="event-body">Nasjonal status på én skjerm. Fire graf-paneler siste 24 t (Norge): DDoS-aktivitet (L7 + L3/4), Båndbredde, HTTP-trafikk og Menneske vs. bot. Varselboks for BGP-hendelser, nettavbrudd og trafikkavvik — vises kun når noe er flagget; fraværet av flagg er ingen aktiv attest.</div>
         </div>
         <div class="event-card">
           <div class="event-stripe" style="background:var(--red)"></div>
@@ -468,7 +469,7 @@
       </div>
 
       <div class="callout" style="margin-bottom:24px">
-        <strong>Kombinert vs. per-lag prosent:</strong> Dashboardet viser én samlet «mot snitt»-prosent som vekter L7 og L3/4 etter deres typiske trafikkvolum — dette gir et ærlig overordnet bilde. DDoS-siden bryter dette ned i to separate prosenter, én per lag, slik at du kan se hvilket lag som faktisk beveger seg.
+        <strong>Per-lag delta:</strong> DDoS-kortet på dashboardet viser separate delta-verdier for L7 og L3/4, fargekodet grønn (under snitt) / rød (over snitt). DDoS-siden gir i tillegg full tidsserie, Kilde-AS og opprinnelsesland.
       </div>
 
       <div class="prose">
@@ -490,6 +491,38 @@
         <strong>Kun Cloudflare-trafikk:</strong> Dataene dekker utelukkende angrep mot tjenester
         som er bak Cloudflare. Angrep mot infrastruktur som ikke benytter Cloudflare — f.eks. rene
         ISP-nett og on-premise-servere — er ikke synlig her.
+      </div>
+
+      <div class="section" id="s4b">
+        <div class="section-kicker">Dashboard-data</div>
+        <h2>Øvrige grafer</h2>
+      </div>
+
+      <div class="event-grid" style="margin-bottom:32px">
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--blue)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--blue);background:rgba(124,182,255,.14)">BÅNDBREDDE</span>
+            <span class="event-title">Internet Quality Index</span>
+          </div>
+          <div class="event-body">Cloudflares IQI (Internet Quality Index) estimerer effektiv nedlastingshastighet basert på målinger mot Cloudflares eget nettverk. Rapporteres som persentiler p25 / p50 (median) / p75 i Mbps — midtlinjen viser typisk hastighet, båndet rundt viser spredningen. Oppdateres hvert 60. sekund.</div>
+        </div>
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--violet)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--violet);background:rgba(184,146,240,.14)">HTTP</span>
+            <span class="event-title">HTTP-trafikk</span>
+          </div>
+          <div class="event-body">Normalisert volum av HTTP-forespørsler mot norske mål bak Cloudflare. Vises som to linjer: siste 24 t (heltrukket) mot samme 24-timersvindu en uke tilbake (stiplet). Avviket i headeren er denne uken vs. forrige uke — et nøytralt observasjonsmål; mer trafikk er ikke i seg selv bra eller dårlig.</div>
+        </div>
+        <div class="event-card">
+          <div class="event-stripe" style="background:var(--amber)"></div>
+          <div class="event-header">
+            <span class="event-tag" style="color:var(--amber);background:rgba(245,185,66,.14)">BOT</span>
+            <span class="event-title">Menneske vs. bot</span>
+          </div>
+          <div class="event-body">Cloudflare klassifiserer HTTP-trafikk mot norsk infrastruktur som menneskelig eller automatisert (bot). Vises som stablet areal 0–100 %. Bot-andelen leses direkte av mot bunnen — en topp betyr økt automatisert aktivitet, som kan skyldes skraping, scanning eller legitim API-trafikk.</div>
+        </div>
       </div>
 
       <div class="section" id="s5">
@@ -524,7 +557,7 @@
 
       <div class="callout">
         <strong>Kildelink:</strong> Klassifiseringene kommer direkte fra Cloudflare Radars
-        <code>/outages</code> og <code>/traffic-anomalies</code> API-er. Nettradar viser dem uten
+        <code>/annotations/outages</code> og <code>/traffic_anomalies</code> API-er. Nettradar viser dem uten
         egen fortolkning eller terskelsetting — det Cloudflare flagger som nettavbrudd, vises som
         nettavbrudd; det de flagger som trafikkavvik, vises som trafikkavvik.
       </div>
@@ -548,7 +581,7 @@
             <span class="source-dot" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>
             <span class="source-name">Cloudflare Radar</span>
           </div>
-          <div class="source-body">L7- og L3/4 DDoS-tidsserier, BGP-hijacks, route leaks og angrepenes opprinnelse for Norge. Oppdateres hvert 60. sekund.</div>
+          <div class="source-body">L7- og L3/4 DDoS-tidsserier, BGP-hijacks, route leaks og angrepenes opprinnelse for Norge. Båndbredde (IQI p25/p50/p75), normalisert HTTP-trafikk, bot-klassifisering (menneskelig vs. automatisert trafikk), nettavbrudd og trafikkavvik. Oppdateres hvert 60. sekund.</div>
           <div class="source-link" style="color:var(--amber)">↗ radar.cloudflare.com</div>
         </a>
         <a class="source-card" href="https://peeringdb.com" target="_blank" rel="noopener noreferrer" style="--card-color:var(--green)">
@@ -625,7 +658,7 @@ fetch('/health').then(r => r.json()).then(d => {
 });
 
 function updateActiveLink() {
-  const ids = ['s1','s2','s3','s4','s5','s6'];
+  const ids = ['s1','s2','s3','s4','s4b','s5','s6'];
   let active = 's1';
   for (const id of ids) {
     const el = document.getElementById(id);
