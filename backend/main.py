@@ -91,6 +91,7 @@ async def sitemap():
   <url><loc>https://nettradar.no/ddos</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://nettradar.no/bgp</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://nettradar.no/tilgjengelighet</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://nettradar.no/topologi</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://nettradar.no/om</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>"""
     return Response(content=content, media_type="application/xml")
