@@ -250,6 +250,7 @@
       .nav { padding: 18px 20px 14px; gap: 14px; }
       .graph-section { margin: 0 20px 32px; }
       #alertbox-wrap { margin: 0 20px 16px; }
+      .graph-card-body { padding: 12px 8px 0; }
     }
     @media (max-width: 700px) {
       .graph-section { margin: 0; }
@@ -618,7 +619,7 @@ function drawLine(svgEl, wrap, opts) {
     return;
   }
 
-  const padT = 8, padB = 32, padL = 48, padR = 10;
+  const padT = 8, padB = 32, padL = W < 480 ? 32 : 48, padR = 10;
   const iH = H - padT - padB, iW = W - padL - padR;
   const dim = cssVar('--dim'), txt = cssVar('--text');
 
@@ -696,7 +697,7 @@ function drawStacked(svgEl, wrap) {
     return;
   }
 
-  const padT = 8, padB = 32, padL = 48, padR = 10;
+  const padT = 8, padB = 32, padL = W < 480 ? 32 : 48, padR = 10;
   const iH = H - padT - padB, iW = W - padL - padR;
   const amber = cssVar('--amber'), green = cssVar('--green'), dim = cssVar('--dim'), txt = cssVar('--text');
   const n = bot.length;
