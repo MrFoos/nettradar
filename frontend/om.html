@@ -310,6 +310,7 @@
       <a class="anchor-link" href="#s4b">Øvrige grafer</a>
       <a class="anchor-link" href="#s5">Nettavbrudd og trafikkavvik</a>
       <a class="anchor-link" href="#s6">Datakilder</a>
+      <a class="anchor-link" href="#varsler">Varsler og abonnement</a>
     </div>
   </div>
 
@@ -602,6 +603,83 @@
         </p>
       </div>
 
+      <div class="section" id="varsler">
+        <div class="section-kicker">Push-varsler</div>
+        <h2>Varsler og abonnement</h2>
+      </div>
+
+      <div class="prose">
+        <p>Nettradar sender push-varsler via <strong>ntfy</strong> — en åpen kildekode-tjeneste for push-meldinger som kjøres på samme server som nettradar.no. Varsler sendes automatisk når nye hendelser oppdages:</p>
+      </div>
+
+      <div class="event-grid" style="margin-bottom:28px">
+        <div class="event-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="event-tag" style="color:var(--red);background:rgba(255,107,91,.14)">URGENT</span>
+            <span style="font-size:13px;font-weight:600;color:var(--text)">BGP-kapring</span>
+          </div>
+          <div style="font-size:13px;color:var(--dim);line-height:1.55">En ikke-norsk AS annonserer et norsk prefiks, eller Cloudflare Radar oppdager en hijack-hendelse som involverer norske nettverk.</div>
+        </div>
+        <div class="event-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="event-tag" style="color:var(--amber);background:rgba(245,185,66,.14)">HIGH</span>
+            <span style="font-size:13px;font-weight:600;color:var(--text)">Route-lekkasje</span>
+          </div>
+          <div style="font-size:13px;color:var(--dim);line-height:1.55">En AS videresender ruter den ikke burde annonsere, noe som kan forstyrre trafikken for norske nettverksoperatører.</div>
+        </div>
+        <div class="event-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="event-tag" style="color:var(--blue);background:rgba(124,182,255,.14)">DEFAULT</span>
+            <span style="font-size:13px;font-weight:600;color:var(--text)">Nettavbrudd</span>
+          </div>
+          <div style="font-size:13px;color:var(--dim);line-height:1.55">Cloudflare Radar registrerer et nettavbrudd i Norge — typisk tap av trafikk til én eller flere norske operatører.</div>
+        </div>
+        <div class="event-card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="event-tag" style="color:var(--dimmer);background:rgba(122,122,138,.14)">LOW</span>
+            <span style="font-size:13px;font-weight:600;color:var(--text)">Trafikkavvik</span>
+          </div>
+          <div style="font-size:13px;color:var(--dim);line-height:1.55">Uvanlig trafikkoppførsel for norsk internett — ikke nødvendigvis et avbrudd, men et avvik fra normalmønsteret.</div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>Samme hendelse varsles maksimalt én gang per time for å unngå støy.</p>
+        <h3 style="font-size:15px;font-weight:600;color:var(--text);margin:24px 0 12px">Slik abonnerer du</h3>
+        <p>Varsler publiseres på den åpne topicen <code>nettradar-varsler</code>. Alle kan abonnere — ingen konto eller registrering er nødvendig.</p>
+      </div>
+
+      <div class="event-grid" style="margin-bottom:16px">
+        <div class="event-card" style="counter-increment:none">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.4px;color:var(--dimmer);text-transform:uppercase;margin-bottom:10px">Steg 1</div>
+          <div style="font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:6px">Last ned ntfy-appen</div>
+          <div style="font-size:13px;color:var(--dim);line-height:1.55">Installer <strong>ntfy</strong> på iOS (App Store) eller Android (Google Play / F-Droid). Du kan også bruke nettleseren direkte.</div>
+        </div>
+        <div class="event-card">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.4px;color:var(--dimmer);text-transform:uppercase;margin-bottom:10px">Steg 2</div>
+          <div style="font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:6px">Trykk «Subscribe to topic»</div>
+          <div style="font-size:13px;color:var(--dim);line-height:1.55">I appen, trykk på plussikonet eller «Subscribe to topic». Skriv inn server og topic-navn som vist under.</div>
+        </div>
+        <div class="event-card">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.4px;color:var(--dimmer);text-transform:uppercase;margin-bottom:10px">Steg 3</div>
+          <div style="font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:6px">Fyll inn server og topic</div>
+          <div style="font-size:13px;color:var(--dim);line-height:1.55">
+            Server: <code>https://ntfy.nettradar.no</code><br>
+            Topic: <code>nettradar-varsler</code><br>
+            Ingen passord nødvendig.
+          </div>
+        </div>
+        <div class="event-card">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.4px;color:var(--dimmer);text-transform:uppercase;margin-bottom:10px">Steg 4</div>
+          <div style="font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:6px">Du er klar</div>
+          <div style="font-size:13px;color:var(--dim);line-height:1.55">Appen kobler seg til og venter på hendelser. Push-varsler leveres direkte til telefonen når noe oppdages.</div>
+        </div>
+      </div>
+
+      <div class="callout" style="border-left-color:var(--green)">
+        Foretrekker du nettleser fremfor app? Gå til <a href="https://ntfy.nettradar.no" target="_blank" rel="noopener noreferrer" style="color:var(--green)">ntfy.nettradar.no</a>, trykk «Subscribe to topic» og skriv inn <code>nettradar-varsler</code>. Du kan gi nettleseren tillatelse til desktop-varsler og abonnere uten å installere noe.
+      </div>
+
     </div>
   </div>
 </div></main>
@@ -659,7 +737,7 @@ fetch('/health').then(r => r.json()).then(d => {
 });
 
 function updateActiveLink() {
-  const ids = ['s1','s2','s3','s4','s4b','s5','s6'];
+  const ids = ['s1','s2','s3','s4','s4b','s5','s6','varsler'];
   let active = 's1';
   for (const id of ids) {
     const el = document.getElementById(id);

@@ -236,6 +236,11 @@
     .source-footer-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 1.6px; color: var(--dimmer); text-transform: uppercase; margin-bottom: 10px; }
     .source-footer-items { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--dim); line-height: 1.5; }
     .source-footer-items strong { color: var(--dim); font-weight: 600; }
+    .notify-banner { display: flex; align-items: center; gap: 12px; padding: 13px 40px; border-top: 1px solid var(--border); font-size: 13px; color: var(--dim); }
+    .notify-banner-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: c-pulse 2.5s ease-in-out infinite; }
+    .notify-banner-link { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--green); text-decoration: none; white-space: nowrap; }
+    .notify-banner-link:hover { text-decoration: underline; }
+    @media (max-width: 600px) { .notify-banner { flex-wrap: wrap; padding: 13px 20px; } .notify-banner-link { margin-left: 0; } }
 
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--card); }
@@ -486,6 +491,13 @@
     </div>
 
   </div>
+</div>
+
+<!-- NOTIFY BANNER -->
+<div class="notify-banner">
+  <span class="notify-banner-dot"></span>
+  <span>Få push-varsler om BGP-kapringer, nettavbrudd og trafikkavvik</span>
+  <a class="notify-banner-link" href="/om#varsler">Abonner gratis →</a>
 </div>
 
 <!-- SOURCE FOOTER -->
