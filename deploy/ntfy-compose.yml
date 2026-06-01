@@ -5,6 +5,7 @@ services:
     environment:
       NTFY_BASE_URL: https://ntfy.nettradar.no
       NTFY_LISTEN_HTTP: :80
+      NTFY_UPSTREAM_BASE_URL: https://ntfy.sh
       NTFY_CACHE_FILE: /var/cache/ntfy/cache.db
       NTFY_AUTH_FILE: /var/lib/ntfy/auth.db
     volumes:
