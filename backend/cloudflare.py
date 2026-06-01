@@ -8,8 +8,12 @@ import aiohttp
 
 from . import state
 from .models import AttackASOrigin, AttackDataPoint, AttackOrigin, BandwidthPoint, BGPEvent, HijackAlert, OutageEvent, RadarState, RouteLeak, TrafficAnomaly, TrafficAnomalyEvent, TrafficPoint
+from .notify import notify_anomaly, notify_hijack, notify_outage, notify_route_leak
 
 _seen_hijack_keys: set[tuple] = set()
+_seen_leak_keys: set[tuple] = set()
+_seen_outage_ids: set[str] = set()
+_seen_anomaly_ids: set[str] = set()
 
 logger = logging.getLogger(__name__)
 
@@ -295,6 +299,12 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
 
     if len(_seen_hijack_keys) > 2000:
         _seen_hijack_keys.clear()
+    if len(_seen_leak_keys) > 2000:
+        _seen_leak_keys.clear()
+    if len(_seen_outage_ids) > 2000:
+        _seen_outage_ids.clear()
+    if len(_seen_anomaly_ids) > 2000:
+        _seen_anomaly_ids.clear()
 
     for h in hijacks:
         key = (h.hijacker_asn, h.prefix, h.detected_at)
@@ -316,6 +326,23 @@ async def _poll_once(session: aiohttp.ClientSession) -> None:
         )
         state.record_event(event)
         await state.broadcast({"type": "bgp_event", "data": event.model_dump()})
+        await notify_hijack(h)
+
+    for r in leaks:
+        leak_key = (r.leak_asn, r.prefix, r.detected_at)
+        if leak_key not in _seen_leak_keys:
+            _seen_leak_keys.add(leak_key)
+            await notify_route_leak(r)
+
+    for o in active_outages:
+        if o.id not in _seen_outage_ids:
+            _seen_outage_ids.add(o.id)
+            await notify_outage(o)
+
+    for a in traffic_anomaly_events:
+        if a.id not in _seen_anomaly_ids:
+            _seen_anomaly_ids.add(a.id)
+            await notify_anomaly(a)
 
     new_state = RadarState(
         attack_timeseries=timeseries,
