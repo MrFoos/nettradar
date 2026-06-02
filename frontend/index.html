@@ -238,9 +238,10 @@
     .source-footer-items strong { color: var(--dim); font-weight: 600; }
     .notify-banner { display: flex; align-items: center; gap: 12px; padding: 13px 40px; border-top: 1px solid var(--border); font-size: 13px; color: var(--dim); }
     .notify-banner-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: c-pulse 2.5s ease-in-out infinite; }
+    .notify-banner-text { display: flex; align-items: center; gap: 12px; }
     .notify-banner-link { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--green); text-decoration: none; white-space: nowrap; }
     .notify-banner-link:hover { text-decoration: underline; }
-    @media (max-width: 600px) { .notify-banner { flex-wrap: wrap; padding: 13px 20px; } .notify-banner-link { margin-left: 0; } }
+    @media (max-width: 600px) { .notify-banner { flex-wrap: wrap; padding: 13px 20px; gap: 8px; } .notify-banner-link { margin-left: 0; padding-left: 19px; } }
 
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: var(--card); }
@@ -495,8 +496,10 @@
 
 <!-- NOTIFY BANNER -->
 <div class="notify-banner">
-  <span class="notify-banner-dot"></span>
-  <span>Få push-varsler om BGP-kapringer, nettavbrudd og trafikkavvik</span>
+  <div class="notify-banner-text">
+    <span class="notify-banner-dot"></span>
+    <span>Få push-varsler om BGP-kapringer, nettavbrudd og trafikkavvik</span>
+  </div>
   <a class="notify-banner-link" href="/om#varsler">Abonner gratis →</a>
 </div>
 
