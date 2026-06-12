@@ -639,6 +639,11 @@ setInterval(() => {
   if (changed) renderAsnGrid();
 }, 2000);
 
+// ── Escape eksternt innhold før innerHTML ──────────────────────────────────
+function esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 // ── Sparkline SVG ──────────────────────────────────────────────────────────
 function sparkSvg(data, color, hadActivity = false) {
   const w = 240, h = 32;
@@ -725,14 +730,14 @@ function renderAsnGrid() {
           <span style="flex:1"></span>
           ${isFlagged ? flags.map(f => `<span class="flag-badge">⚠ ${f.type}</span>`).join('') : ''}
         </div>
-        <div class="asn-name">${name}</div>
+        <div class="asn-name">${esc(name)}</div>
         ${sparkSvg(s.sparkData || new Array(30).fill(0), sparkColor, (s.updates + s.withdraws) > 0)}
         <div class="asn-metrics">
           <div><div class="m-label">Annons</div><div class="m-val" style="${isSilent ? 'color:var(--dimmer)' : ''}">${isSilent ? '–' : s.updates.toLocaleString('nb-NO')}</div></div>
           <div><div class="m-label">Tilbaketrekk</div><div class="m-val" style="${isSilent ? 'color:var(--dimmer)' : s.withdraws>0 ? 'color:var(--amber)' : ''}">${isSilent ? '–' : s.withdraws.toLocaleString('nb-NO')}</div></div>
           <div><div class="m-label">Prefikser</div><div class="m-val" style="${isSilent ? 'color:var(--dimmer)' : ''}">${isSilent ? '–' : prefixCount > 0 ? prefixCount.toLocaleString('nb-NO') : '—'}</div></div>
         </div>
-        ${isFlagged ? `<div class="flag-detail">${flags.map(f => `<div><strong>${f.source}:</strong> ${f.detail}</div>`).join('')}</div>` : ''}
+        ${isFlagged ? `<div class="flag-detail">${flags.map(f => `<div><strong>${f.source}:</strong> ${esc(f.detail)}</div>`).join('')}</div>` : ''}
       </div>`;
   }).join('');
 }
@@ -777,8 +782,8 @@ function renderSignificant() {
         <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--dim)">${tStr}</span>
         <span style="font-size:10px;font-weight:700;letter-spacing:1.2px;color:${c};padding:3px 8px;background:${cbg};border-radius:3px;justify-self:start">${e.label}</span>
         <span>
-          <div style="font-weight:500">${e.headline}</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--dim);margin-top:2px">${e.detail}</div>
+          <div style="font-weight:500">${esc(e.headline)}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--dim);margin-top:2px">${esc(e.detail)}</div>
         </span>
         <span style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--dim)">${ago}</span>
       </div>`;
@@ -806,12 +811,12 @@ function renderLog() {
         <span style="font-family:'JetBrains Mono',monospace;color:var(--dim);font-variant-numeric:tabular-nums">${t}</span>
         <span><span class="type-badge" style="color:${c};background:${cbg}">${tag}</span></span>
         <span style="display:flex;gap:10px;align-items:baseline;min-width:0;overflow:hidden">
-          <span style="font-family:'JetBrains Mono',monospace;font-weight:500;white-space:nowrap">${e.prefix}</span>
-          ${originAsn ? `<span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">AS${originAsn}</span>` : ''}
-          ${asnName ? `<span style="font-size:11px;color:var(--dim);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${asnName}</span>` : ''}
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:500;white-space:nowrap">${esc(e.prefix)}</span>
+          ${originAsn ? `<span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">AS${esc(originAsn)}</span>` : ''}
+          ${asnName ? `<span style="font-size:11px;color:var(--dim);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(asnName)}</span>` : ''}
         </span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${asPath}</span>
-        <span style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">AS${e.peer_asn}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(asPath)}</span>
+        <span style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">AS${esc(e.peer_asn)}</span>
       </div>`;
   }).join('');
 }
@@ -906,7 +911,8 @@ function connect() {
   ws = new WebSocket(`${proto}://${location.host}/ws`);
   ws.onopen = () => { document.getElementById('ripe-dot').classList.add('live'); updateMobileLive(); };
   ws.onmessage = ev => {
-    const msg = JSON.parse(ev.data);
+    let msg;
+    try { msg = JSON.parse(ev.data); } catch { return; }
     if (msg.type === 'state_snapshot') {
       applySnapshot(msg.data);
       saveSnapshot(msg.data);

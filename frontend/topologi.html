@@ -732,6 +732,10 @@ function ticked() {
 // ── Tooltip ────────────────────────────────────────────────────────────────
 const tooltipEl = document.getElementById('tooltip');
 
+function esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function showTooltip(event, d) {
   const now = Date.now();
   const ago = d.lastSeen ? Math.floor((now - d.lastSeen)/1000) : null;
@@ -739,8 +743,8 @@ function showTooltip(event, d) {
   const state = nodeState(d);
   tooltipEl.innerHTML = `
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-      <span style="font-weight:600">${d.fullName}</span>
-      <span style="font-family:'JetBrains Mono',monospace;color:var(--dim);font-size:11px">AS${d.id}</span>
+      <span style="font-weight:600">${esc(d.fullName)}</span>
+      <span style="font-family:'JetBrains Mono',monospace;color:var(--dim);font-size:11px">AS${esc(d.id)}</span>
     </div>
     <div style="display:flex;justify-content:space-between;color:var(--dim);font-size:11px;margin-bottom:3px">
       <span>BGP-hendelser</span><span style="font-family:'JetBrains Mono',monospace;color:var(--text)">${d.activity.toLocaleString('nb-NO')}</span>
@@ -796,8 +800,8 @@ function renderActiveList(nodes) {
   list.innerHTML = sorted.map(n => `
     <div class="active-row">
       <span class="active-dot" style="background:${nodeColor(n)}"></span>
-      <span style="flex:1;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.name}</span>
-      <span style="font-family:'JetBrains Mono',monospace;color:var(--dim);font-size:11px;flex-shrink:0">AS${n.id}</span>
+      <span style="flex:1;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(n.name)}</span>
+      <span style="font-family:'JetBrains Mono',monospace;color:var(--dim);font-size:11px;flex-shrink:0">AS${esc(n.id)}</span>
       <span style="font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-size:12px;font-weight:600;width:50px;text-align:right;flex-shrink:0">${n.activity.toLocaleString('nb-NO')}</span>
     </div>`).join('');
 }
@@ -863,7 +867,8 @@ function connect() {
   const ws = new WebSocket(`${proto}://${location.host}/ws`);
   ws.onopen = () => document.getElementById('ripe-dot').classList.add('live');
   ws.onmessage = e => {
-    const msg = JSON.parse(e.data);
+    let msg;
+    try { msg = JSON.parse(e.data); } catch { return; }
     if (msg.type === 'state_snapshot') handleSnapshot(msg.data);
     else if (msg.type === 'bgp_event') handleBGPEvent(msg.data);
     else if (msg.type === 'hijack_alert') {

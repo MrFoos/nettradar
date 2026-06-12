@@ -655,6 +655,9 @@ function flag(code) {
   if (!code || code.length !== 2) return '🌐';
   return String.fromCodePoint(...[...code.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
 }
+function esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 function fmtNum(n) { return (n || 0).toLocaleString('nb-NO'); }
 
@@ -732,8 +735,8 @@ function renderKildeAs(list) {
   const max = list[0].percentage || 1;
   tbody.innerHTML = list.map(r => `
     <tr>
-      <td><span class="mono text-dim" style="font-size:12px">AS${r.as_number}</span></td>
-      <td><div style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:160px">${r.as_name || '—'}</div></td>
+      <td><span class="mono text-dim" style="font-size:12px">AS${esc(r.as_number)}</span></td>
+      <td><div style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:160px">${esc(r.as_name || '—')}</div></td>
       <td class="col-bar"><div class="bar-track"><div class="bar-fill" style="width:${((r.percentage/max)*100).toFixed(1)}%;background:var(--red)"></div></div></td>
       <td class="text-right mono" style="font-size:12.5px;font-weight:600">${(r.percentage||0).toFixed(1)}</td>
     </tr>`).join('');
@@ -750,7 +753,7 @@ function renderOriginsTable(tbody, countEl, origins, emptyMsg) {
   tbody.innerHTML = origins.map(o => `
     <tr>
       <td style="font-size:17px;line-height:1;padding-left:16px">${flag(o.country_code)}</td>
-      <td><div style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:160px">${o.country_name || o.country_code}</div></td>
+      <td><div style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:160px">${esc(o.country_name || o.country_code)}</div></td>
       <td class="col-bar"><div class="bar-track"><div class="bar-fill" style="width:${((o.percentage/max)*100).toFixed(1)}%;background:var(--red)"></div></div></td>
       <td class="text-right mono" style="font-size:12.5px;font-weight:600">${(o.percentage||0).toFixed(1)}</td>
     </tr>`).join('');
@@ -883,7 +886,8 @@ function connect() {
   ws = new WebSocket(`${proto}://${location.host}/ws`);
   ws.onopen = () => { document.getElementById('ripe-dot').classList.add('live'); updateMobileLive(); };
   ws.onmessage = e => {
-    const msg = JSON.parse(e.data);
+    let msg;
+    try { msg = JSON.parse(e.data); } catch { return; }
     if (msg.type === 'state_snapshot' || msg.type === 'radar_update') {
       const snapData = msg.type === 'state_snapshot' ? msg.data : { radar: msg.data, no_asns: noAsns };
       applySnapshot(snapData);
