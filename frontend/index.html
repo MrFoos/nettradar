@@ -589,6 +589,9 @@ function flag(code) {
   if (!code || code.length !== 2) return '🌐';
   return String.fromCodePoint(...[...code.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
 }
+function esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 function timeAgo(ts) {
   const d = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
   if (d < 60)    return 'akkurat nå';
@@ -793,8 +796,8 @@ function renderBars(list, elId, type) {
   const max = list[0].percentage || 1;
   el.innerHTML = list.slice(0,7).map(o => `
     <div class="bar-row">
-      ${type === 'as' ? `<span class="bar-asn">AS${o.as_number}</span>` : `<span class="bar-flag">${flag(o.country_code)}</span>`}
-      <span class="bar-name">${type === 'as' ? (o.as_name || '—') : (o.country_name || o.country_code)}</span>
+      ${type === 'as' ? `<span class="bar-asn">AS${esc(o.as_number)}</span>` : `<span class="bar-flag">${flag(o.country_code)}</span>`}
+      <span class="bar-name">${esc(type === 'as' ? (o.as_name || '—') : (o.country_name || o.country_code))}</span>
       <div class="bar-track"><div class="bar-fill" style="width:${((o.percentage/max)*100).toFixed(1)}%;background:var(--red)"></div></div>
       <span class="bar-pct">${(o.percentage||0).toFixed(1)}</span>
     </div>`).join('');
@@ -827,8 +830,8 @@ function renderAlertbox(alerts, outages, anomalies) {
           <span style="flex:1"></span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)">${timeAgo(a.detected_at)}</span>
         </div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500;word-break:break-all">${a.prefix}</div>
-        <div style="font-size:11.5px;color:var(--dim);line-height:1.4">${hijName} ${isH ? '→' : '↯'} ${vicName}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500;word-break:break-all">${esc(a.prefix)}</div>
+        <div style="font-size:11.5px;color:var(--dim);line-height:1.4">${esc(hijName)} ${isH ? '→' : '↯'} ${esc(vicName)}</div>
       </div>`;
     }).join('');
     const more = Math.max(0, alerts.length - 2);
@@ -852,12 +855,12 @@ function renderAlertbox(alerts, outages, anomalies) {
       return `<div class="col-item-card">
         <div style="position:absolute;top:0;bottom:0;left:0;width:2px;background:var(--amber)"></div>
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:var(--amber);padding:2px 6px;background:rgba(245,185,66,.12);border-radius:3px">${typeLabel}</span>
+          <span style="font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:var(--amber);padding:2px 6px;background:rgba(245,185,66,.12);border-radius:3px">${esc(typeLabel)}</span>
           <span style="flex:1"></span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)">${since}</span>
         </div>
-        <div style="font-size:13px;font-weight:500">${name}</div>
-        ${o.asn ? `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">AS${o.asn}${o.location ? ' · ' + o.location : ''}</div>` : ''}
+        <div style="font-size:13px;font-weight:500">${esc(name)}</div>
+        ${o.asn ? `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim)">AS${esc(o.asn)}${o.location ? ' · ' + esc(o.location) : ''}</div>` : ''}
       </div>`;
     }).join('');
     const more = Math.max(0, outages.length - 2);
@@ -886,7 +889,7 @@ function renderAlertbox(alerts, outages, anomalies) {
           <span style="flex:1"></span>
           <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)">${since}</span>
         </div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500">AS${a.asn} · ${name}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500">AS${esc(a.asn)} · ${esc(name)}</div>
         ${a.score != null ? `<div style="font-size:11.5px;color:var(--dim)">Score: ${a.score.toFixed(1)}</div>` : ''}
       </div>`;
     }).join('');
@@ -1096,7 +1099,8 @@ function connect() {
   ws = new WebSocket(`${proto}://${location.host}/ws`);
   ws.onopen = () => { document.getElementById('ripe-dot').classList.add('live'); updateMobileLive(); };
   ws.onmessage = e => {
-    const msg = JSON.parse(e.data);
+    let msg;
+    try { msg = JSON.parse(e.data); } catch { return; }
     if (msg.type === 'state_snapshot') { applySnapshot(msg.data); saveSnapshot(msg.data); markUpdated(); }
     else if (msg.type === 'radar_update') {
       const r = msg.data;

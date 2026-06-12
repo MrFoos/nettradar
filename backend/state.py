@@ -28,7 +28,9 @@ def record_event(event: BGPEvent) -> None:
     if event.matched_no_asns:
         _event_counter += 1
     for asn in event.matched_no_asns:
-        _asn_activity[asn] = _asn_activity.get(asn, 0) + 1
+        # Nøklene er i praksis begrenset til norske ASN-er, men cap som sikkerhetsnett
+        if asn in _asn_activity or len(_asn_activity) < 5000:
+            _asn_activity[asn] = _asn_activity.get(asn, 0) + 1
     if _asn_activity:
         top_asn_id = max(_asn_activity, key=lambda k: _asn_activity[k])
         top_asn = (top_asn_id, no_asn_names.get(top_asn_id, f"AS{top_asn_id}"), _asn_activity[top_asn_id])
