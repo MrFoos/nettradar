@@ -81,6 +81,10 @@ nettradar/
 └── requirements.txt
 ```
 
+## Analytics (umami)
+
+Webanalyse kjøres av en **delt umami-instans** som betjener flere domener (bl.a. nettradar.no og varselkart.no). Den driftes separat fra `/opt/umami/` på VPS-en, med nginx-vhostene `umami.nettradar.no` og `umami.varselkart.no` som proxyer til `127.0.0.1:3000`. Hvert nettsted er registrert som en egen «website» i umami. Tidligere lå det en umami-compose her under `deploy/`, men instansen er ikke lenger en del av dette repoet.
+
 ## Lisens
 
 MIT
