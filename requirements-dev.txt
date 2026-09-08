@@ -1,0 +1,2 @@
+# Kun for CI og lokal kjøring av tests/ — installeres aldri i produksjon.
+pytest>=9.1.1
